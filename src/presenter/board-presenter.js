@@ -16,9 +16,7 @@ export default class BoardPresenter {
     this.pointModel = pointModel;
   }
 
-  init() {
-    this.boardPointModules = [...this.pointModel.getPoint()];
-
+  render() {
     render(new TripInfoView(), this.tripInfoContainer, RenderPosition.AFTERBEGIN);
     render(new FilterView(), this.filterContainer);
     render(this.tripEventsView, this.boardContainer);
@@ -34,5 +32,10 @@ export default class BoardPresenter {
     for (let i = 1; i <= this.boardPointModules.length; i++) {
       render(new PointView({point: this.boardPointModules[i]}), pointsList);
     }
+  }
+
+  init() {
+    this.boardPointModules = [...this.pointModel.getPoint()];
+    this.render();
   }
 }

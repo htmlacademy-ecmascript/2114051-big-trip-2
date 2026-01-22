@@ -1,5 +1,5 @@
 import BoardPresenter from './presenter/board-presenter.js';
-import { PointModel } from './model/tasks-model.js';
+import { PointModel } from './model/point-model.js';
 
 const tripInfoContainer = document.querySelector('.trip-main');
 const filterContainer = document.querySelector('.trip-controls__filters');
