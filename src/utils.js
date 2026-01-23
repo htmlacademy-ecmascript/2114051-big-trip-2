@@ -8,8 +8,15 @@ const formatDate = (dateString, format) => dateString ? dayjs(dateString).format
 const actualPointDate = (dateString) => formatDate(dateString, DATE_FORMAT);
 const actualPointTime = (dateString) => formatDate(dateString, TIME_FORMAT);
 
+const isPointExpired = (dateTo) => dateTo && dayjs().isAfter(dateTo, 'D');
+const pointOffers = (offers) => offers && offers.length > 0;
+
 export {
   getRandomArrayElement,
   actualPointDate,
-  actualPointTime
+  actualPointTime,
+  isPointExpired,
+  pointOffers
 };
+
+

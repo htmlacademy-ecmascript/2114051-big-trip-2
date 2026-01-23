@@ -1,5 +1,5 @@
 import { createElement } from '../render';
-import { actualPointDate, actualPointTime } from '../utils.js';
+import { actualPointDate, actualPointTime, isPointExpired, pointOffers } from '../utils.js';
 
 const createPointTemplate = (point) => {
 
@@ -7,7 +7,11 @@ const createPointTemplate = (point) => {
   const startTime = actualPointTime(point.dateFrom);
   const endTime = actualPointTime(point.dateTo);
 
-  return `<li class="trip-events__item">
+  const expiredClassName = isPointExpired(point.dateTo) ? 'trip-event--expired' : '';
+  const offersClassName = pointOffers(point.offers) ? 'event-offers' : '';
+  const favoriteBtnClassName = point.isFavorite ? 'event__favorite-btn--active' : '';
+
+  return `<li class="trip-events__item ${expiredClassName} ${offersClassName}">
     <div class="event">
       <time class="event__date" datetime="${point.dateFrom}">${startDate}</time>
       <div class="event__type">
@@ -33,7 +37,7 @@ const createPointTemplate = (point) => {
           <span class="event__offer-price">${point.basePrice}</span>
         </li>
       </ul>
-      <button class="event__favorite-btn ${point.isFavorite ? 'event__favorite-btn--active' : ''}" type="button">
+      <button class="event__favorite-btn ${favoriteBtnClassName}" type="button">
         <span class="visually-hidden">Add to favorite</span>
         <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
           <path d="M14 21l-8.22899 4.3262 1.57159-9.1631L.685209 9.67376 9.8855 8.33688 14 0l4.1145 8.33688 9.2003 1.33688-6.6574 6.48934 1.5716 9.1631L14 21z"/>
