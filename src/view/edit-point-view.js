@@ -1,13 +1,16 @@
 import { createElement } from '../render';
+import { BLANK_POINT } from '../const.js';
 
-const createEditPointTemplate = () => (`
-<li class="trip-events__item">
+const createEditPointTemplate = (point) => {
+  const { type, basePrice, destination } = point;
+
+  return `<li class="trip-events__item">
   <form class="event event--edit" action="#" method="post">
     <header class="event__header">
       <div class="event__type-wrapper">
         <label class="event__type event__type-btn" for="event-type-toggle-1">
           <span class="visually-hidden">Choose event type</span>
-          <img class="event__type-icon" width="17" height="17" src="img/icons/bus.png" alt="Event type icon" />
+          <img class="event__type-icon" width="17" height="17" src="img/icons/${type || 'bus'}.png" alt="Event type icon" />
         </label>
         <input class="event__type-toggle visually-hidden" id="event-type-toggle-1" type="checkbox" />
 
@@ -30,13 +33,15 @@ const createEditPointTemplate = () => (`
       </div>
 
       <div class="event__field-group event__field-group--destination">
-        <label class="event__label event__type-output" for="event-destination-1">Bus</label>
+        <label class="event__label event__type-output" for="event-destination-1">
+        ${type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Bus'}
+        </label>
         <input
           class="event__input event__input--destination"
           id="event-destination-1"
           type="text"
           name="event-destination"
-          value="Geneva"
+          value="${destination || 'Geneva'}"
           list="destination-list-1"
         />
         <datalist id="destination-list-1">
@@ -68,7 +73,7 @@ const createEditPointTemplate = () => (`
 
       <div class="event__field-group event__field-group--price">
         <label class="event__label" for="event-price-1"> <span class="visually-hidden">Price</span>&euro; </label>
-        <input class="event__input event__input--price" id="event-price-1" type="text" name="event-price" value="" />
+        <input class="event__input event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice || ''}" />
       </div>
 
       <button class="event__save-btn btn btn--blue" type="submit">Save</button>
@@ -95,12 +100,17 @@ const createEditPointTemplate = () => (`
       </section>
     </section>
   </form>
-</li>`
-);
+</li>`;
+};
+
 
 export default class EditPointView {
+  constructor({point = BLANK_POINT}) {
+    this.point = point;
+  }
+
   getTemplate() {
-    return createEditPointTemplate();
+    return createEditPointTemplate(this.point);
   }
 
   getElement() {

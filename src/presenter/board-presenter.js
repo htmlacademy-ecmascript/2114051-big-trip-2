@@ -27,7 +27,7 @@ export default class BoardPresenter {
 
     const pointsList = tripEventsElement.querySelector('.trip-events__list');
 
-    render(new EditPointView(), pointsList);
+    render(new EditPointView({}), pointsList);
 
     for (let i = 1; i <= this.boardPointModules.length; i++) {
       render(new PointView({point: this.boardPointModules[i]}), pointsList);
