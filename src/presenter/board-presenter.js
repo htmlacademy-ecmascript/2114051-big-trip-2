@@ -5,6 +5,7 @@ import PointView from '../view/point-view.js';
 import TripInfoView from '../view/trip-info-view.js';
 import FilterView from '../view/filter-view.js';
 import { render, RenderPosition } from '../render.js';
+import { BLANK_POINT } from '../const.js';
 
 export default class BoardPresenter {
   tripEventsView = new TripEventsView();
@@ -15,6 +16,21 @@ export default class BoardPresenter {
     this.filterContainer = filterContainer;
     this.pointModel = pointModel;
   }
+
+  #openEditForm(point, pointElement) {
+    const editForm = new EditPointView({ point });
+    const editFormElement = editForm.getElement();
+    const closeButton = editFormElement.querySelector('.event__rollup-btn');
+
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        editFormElement.replaceWith(pointElement);
+      });
+    }
+
+    pointElement.replaceWith(editFormElement);
+  }
+
 
   render() {
     render(new TripInfoView(), this.tripInfoContainer, RenderPosition.AFTERBEGIN);
@@ -27,15 +43,32 @@ export default class BoardPresenter {
 
     const pointsList = tripEventsElement.querySelector('.trip-events__list');
 
-    render(new EditPointView({}), pointsList);
+    render(new EditPointView({point: BLANK_POINT}), pointsList);
 
-    for (let i = 1; i <= this.boardPointModules.length; i++) {
-      render(new PointView({point: this.boardPointModules[i]}), pointsList);
+    for (const point of this.boardPointModules) {
+      const pointView = new PointView(point);
+      const pointElement = pointView.getElement();
+
+      pointView.setEditClickHandler(() => {
+        this.#openEditForm(point, pointElement);
+      });
+
+      render(pointView, pointsList);
     }
   }
 
   init() {
-    this.boardPointModules = [...this.pointModel.getPoint()];
+    const rawPoints = this.pointModel.getPoint();
+    this.boardPointModules = [];
+
+    for (const rawPoint of rawPoints) {
+      const fullPointInfo = this.pointModel.getFullPointInfo(rawPoint);
+
+      if (fullPointInfo) {
+        this.boardPointModules.push(fullPointInfo);
+      }
+    }
+
     this.render();
   }
 }

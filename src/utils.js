@@ -9,14 +9,16 @@ const actualPointDate = (dateString) => formatDate(dateString, DATE_FORMAT);
 const actualPointTime = (dateString) => formatDate(dateString, TIME_FORMAT);
 
 const isPointExpired = (dateTo) => dateTo && dayjs().isAfter(dateTo, 'D');
-const pointOffers = (offers) => offers && offers.length > 0;
+const pointOffers = (offers) => Array.isArray(offers) && offers.length > 0;
+
 
 export {
   getRandomArrayElement,
   actualPointDate,
   actualPointTime,
   isPointExpired,
-  pointOffers
+  pointOffers,
+  formatDate
 };
 
 

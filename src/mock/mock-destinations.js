@@ -1,6 +1,6 @@
 const mockDestinations = [
   {
-    id: 'f4b62099-293f-4c3d-a702-94eec4a2808c',
+    id: 'bfa5cb75-a1fe-4b77-a83c-0e528e910e04',
     description: 'Chamonix, is a beautiful city, a true asian pearl, with crowded streets.',
     name: 'Chamonix',
     pictures: [
@@ -36,4 +36,7 @@ const mockDestinations = [
 
 const getRandomDestinations = () => mockDestinations;
 
-export {getRandomDestinations};
+const getDestinationById = (id) => mockDestinations.find((destination) => destination.id === id);
+
+
+export {getRandomDestinations, getDestinationById};
