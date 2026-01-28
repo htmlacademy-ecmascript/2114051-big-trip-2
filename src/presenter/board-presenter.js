@@ -45,7 +45,7 @@ export default class BoardPresenter {
 
     render(new EditPointView({point: BLANK_POINT}), pointsList);
 
-    for (const point of this.boardPointModules) {
+    this.boardPointModules.forEach((point) => {
       const pointView = new PointView(point);
       const pointElement = pointView.getElement();
 
@@ -54,20 +54,20 @@ export default class BoardPresenter {
       });
 
       render(pointView, pointsList);
-    }
+    });
   }
 
   init() {
     const rawPoints = this.pointModel.getPoint();
     this.boardPointModules = [];
 
-    for (const rawPoint of rawPoints) {
+    rawPoints.forEach((rawPoint) => {
       const fullPointInfo = this.pointModel.getFullPointInfo(rawPoint);
 
       if (fullPointInfo) {
         this.boardPointModules.push(fullPointInfo);
       }
-    }
+    });
 
     this.render();
   }
