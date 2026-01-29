@@ -31,6 +31,6 @@
     "node": "20"
   },
   "dependencies": {
-    "dayjs": "^1.11.6"
+    "dayjs": "1.11.6"
   }
 }

@@ -21,10 +21,10 @@ export default class PointModel {
     // Нахожу город по ID
     const cityInfo = getDestinationById(point.destination);
 
-    // Шаг 3: Нахожу опции для типа точки
+    // Нахожу опции для типа точки
     const allOffersForType = getOffersByType(point.type);
 
-    // Шаг 4: Нахожу выбранные опции проходя по всем ID
+    // Нахожу выбранные опции проходя по всем ID
     const selectedOffers = [];
 
     for (const offerId of point.offers) {
