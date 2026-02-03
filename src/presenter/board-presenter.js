@@ -4,7 +4,9 @@ import EditPointView from '../view/edit-point-view.js';
 import PointView from '../view/point-view.js';
 import TripInfoView from '../view/trip-info-view.js';
 import FilterView from '../view/filter-view.js';
-import { render, RenderPosition } from '../framework/render.js';
+import { render, RenderPosition, remove } from '../framework/render.js';
+import { POINT_COUNT_PER_STEP } from '../const.js';
+import LoadMoreButtonView from '../view/load-more-button-view.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -12,6 +14,8 @@ export default class BoardPresenter {
   #filterContainer = null;
   #pointModel = null;
   #boardPointModules = [];
+  #renderedPointCount = POINT_COUNT_PER_STEP;
+  #loadMoreButtonComponent = null;
 
   tripEventsView = new TripEventsView();
 
@@ -36,7 +40,6 @@ export default class BoardPresenter {
     pointElement.replaceWith(editFormElement);
   }
 
-
   render() {
     render(new TripInfoView(), this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
     render(new FilterView(), this.#filterContainer);
@@ -48,8 +51,15 @@ export default class BoardPresenter {
 
     const pointsList = tripEventsElement.querySelector('.trip-events__list');
 
-    for (const point of this.#boardPointModules) {
-      this.#renderPoint(point, pointsList);
+    for (let i = 0; i < Math.min(this.#boardPointModules.length, POINT_COUNT_PER_STEP); i++) {
+      this.#renderPoint(this.#boardPointModules[i], pointsList);
+    }
+
+    if (this.#boardPointModules.length > POINT_COUNT_PER_STEP) {
+      this.#loadMoreButtonComponent = new LoadMoreButtonView({
+        onClick: this.#handleLoadMoreButtonClick
+      });
+      render(this.#loadMoreButtonComponent, tripEventsElement);
     }
   }
 
@@ -63,6 +73,23 @@ export default class BoardPresenter {
 
     render(pointView, container);
   }
+
+  #handleLoadMoreButtonClick = () => {
+    const nextPoints = this.#boardPointModules.slice(
+      this.#renderedPointCount,
+      this.#renderedPointCount + POINT_COUNT_PER_STEP
+    );
+
+    const pointsList = this.tripEventsView.element.querySelector('.trip-events__list');
+    nextPoints.forEach((point) => this.#renderPoint(point, pointsList));
+
+    this.#renderedPointCount += POINT_COUNT_PER_STEP;
+
+    if (this.#renderedPointCount >= this.#boardPointModules.length) {
+      remove(this.#loadMoreButtonComponent);
+      this.#loadMoreButtonComponent = null;
+    }
+  };
 
   init() {
     const rawPoints = this.#pointModel.points;
