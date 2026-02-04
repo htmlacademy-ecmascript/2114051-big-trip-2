@@ -41,19 +41,8 @@ export default class BoardPresenter {
   }
 
   render() {
-    render(new TripInfoView(), this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
-    render(new FilterView(), this.#filterContainer);
-    render(this.tripEventsView, this.#boardContainer);
-
+    this.#renderBoard();
     const tripEventsElement = this.tripEventsView.element;
-
-    render(new SortView(), tripEventsElement, RenderPosition.BEFOREBEGIN);
-
-    const pointsList = tripEventsElement.querySelector('.trip-events__list');
-
-    for (let i = 0; i < Math.min(this.#boardPointModules.length, POINT_COUNT_PER_STEP); i++) {
-      this.#renderPoint(this.#boardPointModules[i], pointsList);
-    }
 
     if (this.#boardPointModules.length > POINT_COUNT_PER_STEP) {
       this.#loadMoreButtonComponent = new LoadMoreButtonView({
@@ -120,6 +109,20 @@ export default class BoardPresenter {
       this.#loadMoreButtonComponent = null;
     }
   };
+
+  #renderBoard() {
+    render(new TripInfoView(), this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
+    render(new FilterView(), this.#filterContainer);
+    render(this.tripEventsView, this.#boardContainer);
+
+    const tripEventsElement = this.tripEventsView.element;
+    render(new SortView(), tripEventsElement, RenderPosition.BEFOREBEGIN);
+
+    const pointsList = tripEventsElement.querySelector('.trip-events__list');
+    for (let i = 0; i < Math.min(this.#boardPointModules.length, POINT_COUNT_PER_STEP); i++) {
+      this.#renderPoint(this.#boardPointModules[i], pointsList);
+    }
+  }
 
   init() {
     const rawPoints = this.#pointModel.points;
