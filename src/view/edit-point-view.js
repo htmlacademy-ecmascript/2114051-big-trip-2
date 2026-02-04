@@ -98,10 +98,17 @@ function createEditPointTemplate(point) {
           ${typeListTemplate}
 
         </div>
+
+         <button class="event__rollup-btn" type="button">
+          <span class="visually-hidden">Close event</span>
+        </button>
+
           ${destinationTemplate}
           ${timeTemplate}
         <!-- Другие поля формы -->
       </header>
+
+        <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
     </form>
   </li>`;
 }
@@ -109,13 +116,31 @@ function createEditPointTemplate(point) {
 
 export default class EditPointView extends AbstractView {
   #point = null;
+  #handleFormSubmit = null;
+  #handleCloseClick = null;
 
-  constructor({point = BLANK_POINT}) {
+  constructor({point = BLANK_POINT, onFormSubmit, onCloseClick}) {
     super();
     this.#point = point;
+    this.#handleFormSubmit = onFormSubmit;
+    this.#handleCloseClick = onCloseClick;
+
+    this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
+
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeClickHandler);
   }
 
   get template() {
     return createEditPointTemplate(this.#point);
   }
+
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit();
+  };
+
+  #closeClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleCloseClick();
+  };
 }
