@@ -1,4 +1,4 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view.js';
 import { actualPointDate, actualPointTime, isPointExpired, pointOffers } from '../utils.js';
 
 const createPointTemplate = (point) => {
@@ -61,35 +61,25 @@ const createPointTemplate = (point) => {
   </li>`;
 };
 
-export default class PointView {
-  constructor(point) {
-    this.point = point;
+export default class PointView extends AbstractView {
+  #point = null;
+  #handleEditClick = null;
+
+  constructor({point, onEditClick}) {
+    super();
+    this.#point = point;
+    this.#handleEditClick = onEditClick;
+
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#editClickHandler);
   }
 
-  getTemplate() {
-    return createPointTemplate(this.point);
+  get template() {
+    return createPointTemplate(this.#point);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  setEditClickHandler(callback) {
-    this.editCallback = callback;
-
-    if (this.element) {
-      const editButton = this.element.querySelector('.event__rollup-btn');
-      if (editButton) {
-        editButton.addEventListener('click', this.editCallback);
-      }
-    }
-  }
-
-  removeElement() {
-    this.element = null;
-  }
+  #editClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditClick();
+  };
 }

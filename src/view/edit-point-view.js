@@ -1,4 +1,4 @@
-import { createElement } from '../render';
+import AbstractView from '../framework/view/abstract-view.js';
 import { BLANK_POINT } from '../const.js';
 import { formatDate } from '../utils.js';
 
@@ -98,33 +98,49 @@ function createEditPointTemplate(point) {
           ${typeListTemplate}
 
         </div>
+
+         <button class="event__rollup-btn" type="button">
+          <span class="visually-hidden">Close event</span>
+        </button>
+
           ${destinationTemplate}
           ${timeTemplate}
         <!-- Другие поля формы -->
       </header>
+
+        <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
     </form>
   </li>`;
 }
 
 
-export default class EditPointView {
-  constructor({point = BLANK_POINT}) {
-    this.point = point;
+export default class EditPointView extends AbstractView {
+  #point = null;
+  #handleFormSubmit = null;
+  #handleCloseClick = null;
+
+  constructor({point = BLANK_POINT, onFormSubmit, onCloseClick}) {
+    super();
+    this.#point = point;
+    this.#handleFormSubmit = onFormSubmit;
+    this.#handleCloseClick = onCloseClick;
+
+    this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
+
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeClickHandler);
   }
 
-  getTemplate() {
-    return createEditPointTemplate(this.point);
+  get template() {
+    return createEditPointTemplate(this.#point);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
+  #formSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFormSubmit();
+  };
 
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
-  }
+  #closeClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleCloseClick();
+  };
 }
