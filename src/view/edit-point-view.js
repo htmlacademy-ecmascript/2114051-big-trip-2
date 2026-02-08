@@ -1,6 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { BLANK_POINT } from '../const.js';
-import { formatDate } from '../utils.js';
+import { formatDate } from '../utils/utils.js';
 
 
 const createPointTimeTemplate = (dateFrom, dateTo) => `
@@ -99,16 +99,14 @@ function createEditPointTemplate(point) {
 
         </div>
 
-         <button class="event__rollup-btn" type="button">
-          <span class="visually-hidden">Close event</span>
-        </button>
-
           ${destinationTemplate}
           ${timeTemplate}
-        <!-- Другие поля формы -->
-      </header>
-
         <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+
+           <button class="event__rollup-btn" type="button">
+          <span class="visually-hidden">Close event</span>
+        </button>
+      </header>
     </form>
   </li>`;
 }

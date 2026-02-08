@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { actualPointDate, actualPointTime, isPointExpired, pointOffers } from '../utils.js';
+import { actualPointDate, actualPointTime, isPointExpired, pointOffers } from '../utils/utils.js';
 
 const createPointTemplate = (point) => {
   const startDate = actualPointDate(point.dateFrom);

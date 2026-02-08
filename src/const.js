@@ -13,10 +13,25 @@ const BLANK_POINT = {
   type: 'flight'
 };
 
+const FilterType = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future',
+  PRESENT: 'present',
+  PAST: 'past'
+};
+
+const SortType = {
+  DAY: 'day',
+  TIME: 'time',
+  PRICE: 'price'
+};
+
 export {
   POINT_COUNT,
   DATE_FORMAT,
   TIME_FORMAT,
   BLANK_POINT,
-  POINT_COUNT_PER_STEP
+  POINT_COUNT_PER_STEP,
+  FilterType,
+  SortType
 };
