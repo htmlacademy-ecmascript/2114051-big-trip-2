@@ -7,6 +7,10 @@ import FilterView from '../view/filter-view.js';
 import { render, RenderPosition, remove, replace } from '../framework/render.js';
 import { POINT_COUNT_PER_STEP } from '../const.js';
 import LoadMoreButtonView from '../view/load-more-button-view.js';
+import { createFilterData } from '../mock/mock-generate-filters.js';
+import { createSortData } from '../mock/mock-create-sort-data.js';
+import { createTripInfoData } from '../mock/mock-trip-info-data.js';
+import ListEmptyView from '../view/list-empty-view.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -111,12 +115,21 @@ export default class BoardPresenter {
   };
 
   #renderBoard() {
-    render(new TripInfoView(), this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
-    render(new FilterView(), this.#filterContainer);
+    const filtersData = createFilterData(this.#boardPointModules);
+    const sortData = createSortData(this.#boardPointModules);
+    const tripInfoData = createTripInfoData(this.#boardPointModules);
+
+    render(new TripInfoView({ tripInfo: tripInfoData }), this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
+    render(new FilterView({ filters: filtersData }), this.#filterContainer);
     render(this.tripEventsView, this.#boardContainer);
 
     const tripEventsElement = this.tripEventsView.element;
-    render(new SortView(), tripEventsElement, RenderPosition.BEFOREBEGIN);
+    render(new SortView({ sortData }), tripEventsElement, RenderPosition.BEFOREBEGIN);
+
+    if (this.#boardPointModules.length === 0) {
+      render(new ListEmptyView(), tripEventsElement);
+      return;
+    }
 
     const pointsList = tripEventsElement.querySelector('.trip-events__list');
     for (let i = 0; i < Math.min(this.#boardPointModules.length, POINT_COUNT_PER_STEP); i++) {

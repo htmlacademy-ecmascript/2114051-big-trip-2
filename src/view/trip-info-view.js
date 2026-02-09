@@ -1,20 +1,29 @@
 import AbstractView from '../framework/view/abstract-view.js';
 
-const createInfoTemplate = () => (`
-<section class="trip-main__trip-info trip-info">
-  <div class="trip-info__main">
-    <h1 class="trip-info__title">Amsterdam &mdash; Chamonix &mdash; Geneva</h1>
+const createInfoTemplate = (tripInfo) => {
+  const { title, dates, totalCost } = tripInfo;
 
-    <p class="trip-info__dates">18&nbsp;&mdash;&nbsp;20 Mar</p>
-  </div>
-
-  <p class="trip-info__cost">Total: &euro;&nbsp;<span class="trip-info__cost-value">1230</span></p>
-</section>
-`
-);
+  return `
+    <section class="trip-main__trip-info trip-info">
+      <div class="trip-info__main">
+        <h1 class="trip-info__title">${title}</h1>
+        <p class="trip-info__dates">${dates}</p>
+      </div>
+      <p class="trip-info__cost">Total: &euro;&nbsp;<span class="trip-info__cost-value">${totalCost}</span></p>
+    </section>
+  `;
+};
 
 export default class TripInfoView extends AbstractView {
+  #tripInfo = null;
+
+  constructor({ tripInfo }) {
+    super();
+    this.#tripInfo = tripInfo;
+  }
+
   get template() {
-    return createInfoTemplate();
+    return createInfoTemplate(this.#tripInfo);
   }
 }
+
