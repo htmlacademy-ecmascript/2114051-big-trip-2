@@ -4,9 +4,7 @@ import EditPointView from '../view/edit-point-view.js';
 import PointView from '../view/point-view.js';
 import TripInfoView from '../view/trip-info-view.js';
 import FilterView from '../view/filter-view.js';
-import { render, RenderPosition, remove, replace } from '../framework/render.js';
-import { POINT_COUNT_PER_STEP } from '../const.js';
-import LoadMoreButtonView from '../view/load-more-button-view.js';
+import { render, RenderPosition, replace } from '../framework/render.js';
 import { createFilterData } from '../mock/mock-generate-filters.js';
 import { createSortData } from '../mock/mock-create-sort-data.js';
 import { createTripInfoData } from '../mock/mock-trip-info-data.js';
@@ -18,8 +16,6 @@ export default class BoardPresenter {
   #filterContainer = null;
   #pointModel = null;
   #boardPointModules = [];
-  #renderedPointCount = POINT_COUNT_PER_STEP;
-  #loadMoreButtonComponent = null;
 
   tripEventsView = new TripEventsView();
 
@@ -46,14 +42,6 @@ export default class BoardPresenter {
 
   render() {
     this.#renderBoard();
-    const tripEventsElement = this.tripEventsView.element;
-
-    if (this.#boardPointModules.length > POINT_COUNT_PER_STEP) {
-      this.#loadMoreButtonComponent = new LoadMoreButtonView({
-        onClick: this.#handleLoadMoreButtonClick
-      });
-      render(this.#loadMoreButtonComponent, tripEventsElement);
-    }
   }
 
   #renderPoint(point, container) {
@@ -97,23 +85,6 @@ export default class BoardPresenter {
     render(pointComponent, container);
   }
 
-  #handleLoadMoreButtonClick = () => {
-    const nextPoints = this.#boardPointModules.slice(
-      this.#renderedPointCount,
-      this.#renderedPointCount + POINT_COUNT_PER_STEP
-    );
-
-    const pointsList = this.tripEventsView.element.querySelector('.trip-events__list');
-    nextPoints.forEach((point) => this.#renderPoint(point, pointsList));
-
-    this.#renderedPointCount += POINT_COUNT_PER_STEP;
-
-    if (this.#renderedPointCount >= this.#boardPointModules.length) {
-      remove(this.#loadMoreButtonComponent);
-      this.#loadMoreButtonComponent = null;
-    }
-  };
-
   #renderBoard() {
     const filtersData = createFilterData(this.#boardPointModules);
     const sortData = createSortData(this.#boardPointModules);
@@ -132,14 +103,14 @@ export default class BoardPresenter {
     }
 
     const pointsList = tripEventsElement.querySelector('.trip-events__list');
-    for (let i = 0; i < Math.min(this.#boardPointModules.length, POINT_COUNT_PER_STEP); i++) {
-      this.#renderPoint(this.#boardPointModules[i], pointsList);
-    }
+    this.#boardPointModules.forEach((point) => {
+      this.#renderPoint(point, pointsList);
+    });
   }
 
   init() {
     const rawPoints = this.#pointModel.points;
-    this.boardPointModules = [];
+    this.#boardPointModules = [];
 
     for (const rawPoint of rawPoints) {
       const fullPointInfo = this.#pointModel.getFullPointInfo(rawPoint);
