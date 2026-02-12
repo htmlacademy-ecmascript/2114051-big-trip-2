@@ -5,10 +5,10 @@ import PointView from '../view/point-view.js';
 import TripInfoView from '../view/trip-info-view.js';
 import FilterView from '../view/filter-view.js';
 import { render, RenderPosition, replace } from '../framework/render.js';
-import { createFilterData } from '../mock/mock-generate-filters.js';
-import { createSortData } from '../mock/mock-create-sort-data.js';
 import { createTripInfoData } from '../mock/mock-trip-info-data.js';
 import ListEmptyView from '../view/list-empty-view.js';
+import FilterModel from '../model/filter-model.js';
+import SortModel from '../model/sort-model.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -16,6 +16,8 @@ export default class BoardPresenter {
   #filterContainer = null;
   #pointModel = null;
   #boardPointModules = [];
+  #filterModel = null;
+  #sortModel = null;
 
   tripEventsView = new TripEventsView();
 
@@ -86,8 +88,8 @@ export default class BoardPresenter {
   }
 
   #renderBoard() {
-    const filtersData = createFilterData(this.#boardPointModules);
-    const sortData = createSortData(this.#boardPointModules);
+    const filtersData = this.#filterModel.filters;
+    const sortData = this.#sortModel.sortItems;
     const tripInfoData = createTripInfoData(this.#boardPointModules);
 
     render(new TripInfoView({ tripInfo: tripInfoData }), this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
@@ -119,6 +121,9 @@ export default class BoardPresenter {
         this.#boardPointModules.push(fullPointInfo);
       }
     }
+
+    this.#filterModel = new FilterModel(this.#boardPointModules);
+    this.#sortModel = new SortModel(this.#boardPointModules);
 
     this.render();
   }
