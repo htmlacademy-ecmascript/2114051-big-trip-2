@@ -19,6 +19,11 @@ export default class BoardPresenter {
   #filterModel = null;
   #sortModel = null;
 
+  #tripInfoComponent = null;
+  #filterComponent = null;
+  #sortComponent = null;
+  #listEmptyComponent = null;
+
   tripEventsView = new TripEventsView();
 
   constructor({ boardContainer, tripInfoContainer, filterContainer, pointModel }) {
@@ -28,22 +33,29 @@ export default class BoardPresenter {
     this.#pointModel = pointModel;
   }
 
-  #openEditForm(point, pointElement) {
-    const editForm = new EditPointView({ point });
-    const editFormElement = editForm.element;
-    const closeButton = editFormElement.querySelector('.event__rollup-btn');
-
-    if (closeButton) {
-      closeButton.addEventListener('click', () => {
-        editFormElement.replaceWith(pointElement);
-      });
-    }
-
-    pointElement.replaceWith(editFormElement);
+  #renderTripInfo() {
+    const tripInfoData = createTripInfoData(this.#boardPointModules);
+    this.#tripInfoComponent = new TripInfoView({ tripInfo: tripInfoData });
+    render(this.#tripInfoComponent, this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
   }
 
-  render() {
-    this.#renderBoard();
+  #renderFilters() {
+    const filtersData = this.#filterModel.filters;
+    this.#filterComponent = new FilterView({ filters: filtersData });
+    render(this.#filterComponent, this.#filterContainer);
+  }
+
+  #renderSort() {
+    const sortData = this.#sortModel.sortItems;
+    this.#sortComponent = new SortView({ sortData });
+    const tripEventsElement = this.tripEventsView.element;
+    render(this.#sortComponent, tripEventsElement, RenderPosition.BEFOREBEGIN);
+  }
+
+  #renderNoPoints() {
+    this.#listEmptyComponent = new ListEmptyView();
+    const tripEventsElement = this.tripEventsView.element;
+    render(this.#listEmptyComponent, tripEventsElement);
   }
 
   #renderPoint(point, container) {
@@ -69,7 +81,6 @@ export default class BoardPresenter {
         replaceFormToPoint();
         document.removeEventListener('keydown', escKeyDownHandler);
       },
-
       onCloseClick: () => {
         replaceFormToPoint();
         document.removeEventListener('keydown', escKeyDownHandler);
@@ -87,27 +98,31 @@ export default class BoardPresenter {
     render(pointComponent, container);
   }
 
-  #renderBoard() {
-    const filtersData = this.#filterModel.filters;
-    const sortData = this.#sortModel.sortItems;
-    const tripInfoData = createTripInfoData(this.#boardPointModules);
-
-    render(new TripInfoView({ tripInfo: tripInfoData }), this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
-    render(new FilterView({ filters: filtersData }), this.#filterContainer);
-    render(this.tripEventsView, this.#boardContainer);
-
+  #renderPoints() {
     const tripEventsElement = this.tripEventsView.element;
-    render(new SortView({ sortData }), tripEventsElement, RenderPosition.BEFOREBEGIN);
-
-    if (this.#boardPointModules.length === 0) {
-      render(new ListEmptyView(), tripEventsElement);
-      return;
-    }
-
     const pointsList = tripEventsElement.querySelector('.trip-events__list');
+
     this.#boardPointModules.forEach((point) => {
       this.#renderPoint(point, pointsList);
     });
+  }
+
+  #renderBoard() {
+    render(this.tripEventsView, this.#boardContainer);
+    this.#renderTripInfo();
+    this.#renderFilters();
+
+    if (this.#boardPointModules.length === 0) {
+      this.#renderNoPoints();
+      return;
+    }
+
+    this.#renderSort();
+    this.#renderPoints();
+  }
+
+  render() {
+    this.#renderBoard();
   }
 
   init() {
@@ -116,7 +131,6 @@ export default class BoardPresenter {
 
     for (const rawPoint of rawPoints) {
       const fullPointInfo = this.#pointModel.getFullPointInfo(rawPoint);
-
       if (fullPointInfo) {
         this.#boardPointModules.push(fullPointInfo);
       }

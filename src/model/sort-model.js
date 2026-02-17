@@ -1,4 +1,4 @@
-import { sortingMethods } from '../utils/sorting-helpers.js';
+import { sortingMethods } from '../utils/sorting.js';
 import { SortType } from '../const.js';
 
 export default class SortModel {
