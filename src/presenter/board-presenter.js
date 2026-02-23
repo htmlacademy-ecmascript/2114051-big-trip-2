@@ -1,14 +1,13 @@
 import TripEventsView from '../view/trip-events-view.js';
 import SortView from '../view/sort-view.js';
-import EditPointView from '../view/edit-point-view.js';
-import PointView from '../view/point-view.js';
 import TripInfoView from '../view/trip-info-view.js';
 import FilterView from '../view/filter-view.js';
-import { render, RenderPosition, replace } from '../framework/render.js';
+import { render, RenderPosition } from '../framework/render.js';
 import { createTripInfoData } from '../mock/mock-trip-info-data.js';
 import ListEmptyView from '../view/list-empty-view.js';
 import FilterModel from '../model/filter-model.js';
 import SortModel from '../model/sort-model.js';
+import PointPresenter from './point-presenter.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -24,6 +23,7 @@ export default class BoardPresenter {
   #sortComponent = null;
   #listEmptyComponent = null;
 
+  #pointPresenters = new Map();
   tripEventsView = new TripEventsView();
 
   constructor({ boardContainer, tripInfoContainer, filterContainer, pointModel }) {
@@ -59,48 +59,24 @@ export default class BoardPresenter {
   }
 
   #renderPoint(point, container) {
-    const escKeyDownHandler = (evt) => {
-      if (evt.key === 'Escape' || evt.key === 'Esc') {
-        evt.preventDefault();
-        replaceFormToPoint();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    };
-
-    const pointComponent = new PointView({
-      point,
-      onEditClick: () => {
-        replacePointToForm();
-        document.addEventListener('keydown', escKeyDownHandler);
-      }
+    const pointPresenter = new PointPresenter({
+      pointContainer: container
     });
 
-    const pointEditComponent = new EditPointView({
-      point,
-      onFormSubmit: () => {
-        replaceFormToPoint();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      },
-      onCloseClick: () => {
-        replaceFormToPoint();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    });
+    pointPresenter.init(point);
+    this.#pointPresenters.set(point.id, pointPresenter);
+  }
 
-    function replacePointToForm() {
-      replace(pointEditComponent, pointComponent);
-    }
-
-    function replaceFormToPoint() {
-      replace(pointComponent, pointEditComponent);
-    }
-
-    render(pointComponent, container);
+  #clearPointPresenters() {
+    this.#pointPresenters.clear();
   }
 
   #renderPoints() {
     const tripEventsElement = this.tripEventsView.element;
     const pointsList = tripEventsElement.querySelector('.trip-events__list');
+
+    pointsList.innerHTML = '';
+    this.#clearPointPresenters();
 
     this.#boardPointModules.forEach((point) => {
       this.#renderPoint(point, pointsList);
@@ -108,6 +84,9 @@ export default class BoardPresenter {
   }
 
   #renderBoard() {
+    this.#boardContainer.innerHTML = '';
+    this.#clearPointPresenters();
+
     render(this.tripEventsView, this.#boardContainer);
     this.#renderTripInfo();
     this.#renderFilters();
