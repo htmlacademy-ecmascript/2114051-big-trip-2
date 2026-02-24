@@ -67,7 +67,7 @@ export default class BoardPresenter {
     this.#pointPresenters.set(point.id, pointPresenter);
   }
 
-  #clearPointPresenters() {
+  #clearPointsList() {
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
   }
@@ -76,8 +76,8 @@ export default class BoardPresenter {
     const tripEventsElement = this.tripEventsView.element;
     const pointsList = tripEventsElement.querySelector('.trip-events__list');
 
+    this.#clearPointsList();
     pointsList.innerHTML = '';
-    this.#clearPointPresenters();
 
     this.#boardPointModules.forEach((point) => {
       this.#renderPoint(point, pointsList);
@@ -86,7 +86,7 @@ export default class BoardPresenter {
 
   #renderBoard() {
     this.#boardContainer.innerHTML = '';
-    this.#clearPointPresenters();
+    this.#clearPointsList();
 
     render(this.tripEventsView, this.#boardContainer);
     this.#renderTripInfo();
