@@ -7,9 +7,11 @@ export default class PointPresenter {
   #pointComponent = null;
   #pointEditComponent = null;
   #point = null;
+  #onDataChange = null;
 
-  constructor({pointContainer}) {
+  constructor({ pointContainer, onDataChange }) {
     this.#pointContainer = pointContainer;
+    this.#onDataChange = onDataChange;
   }
 
   init(point) {

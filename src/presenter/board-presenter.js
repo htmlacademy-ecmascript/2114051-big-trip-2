@@ -8,6 +8,7 @@ import ListEmptyView from '../view/list-empty-view.js';
 import FilterModel from '../model/filter-model.js';
 import SortModel from '../model/sort-model.js';
 import PointPresenter from './point-presenter.js';
+import { updateItem } from '../utils/utils.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -32,6 +33,11 @@ export default class BoardPresenter {
     this.#filterContainer = filterContainer;
     this.#pointModel = pointModel;
   }
+
+  #handlePointChange = (updatedPoint) => {
+    this.#boardPointModules = updateItem(this.#boardPointModules, updatedPoint);
+    this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
+  };
 
   #renderTripInfo() {
     const tripInfoData = createTripInfoData(this.#boardPointModules);
@@ -60,7 +66,8 @@ export default class BoardPresenter {
 
   #renderPoint(point, container) {
     const pointPresenter = new PointPresenter({
-      pointContainer: container
+      pointContainer: container,
+      onDataChange: this.#handlePointChange
     });
 
     pointPresenter.init(point);
