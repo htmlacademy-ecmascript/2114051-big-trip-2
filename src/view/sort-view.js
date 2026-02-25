@@ -1,7 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { SortType } from '../const.js';
 
-
 const formatSortLabel = (sortType) => sortType.charAt(0).toUpperCase() + sortType.slice(1);
 
 const createSortItemTemplate = (sortItem) => {
@@ -19,6 +18,7 @@ const createSortItemTemplate = (sortItem) => {
         type="radio"
         name="trip-sort"
         value="${type}"
+        data-sort-type="${type}"
         ${isAlwaysDisabled ? 'disabled' : ''}
         ${isChecked ? 'checked' : ''}
       />
@@ -41,13 +41,32 @@ const createSortTemplate = (sortData) => {
 
 export default class SortView extends AbstractView {
   #sortData = null;
+  #handleSortTypeChange = null;
 
-  constructor({ sortData }) {
+  constructor({ sortData, onSortTypeChange }) {
     super();
     this.#sortData = sortData;
+    this.#handleSortTypeChange = onSortTypeChange;
+    this.element.addEventListener('click', this.#sortTypeChangeHandler);
   }
 
   get template() {
     return createSortTemplate(this.#sortData);
   }
+
+  #sortTypeChangeHandler = (evt) => {
+    if (evt.target.tagName !== 'LABEL') {
+      return;
+    }
+
+    evt.preventDefault();
+
+    const inputId = evt.target.getAttribute('for');
+    const input = document.getElementById(inputId);
+
+    if (input) {
+      const sortType = input.dataset.sortType;
+      this.#handleSortTypeChange(sortType);
+    }
+  };
 }

@@ -1,6 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { actualPointDate, actualPointTime, isPointExpired, pointOffers } from '../utils/utils.js';
 
+
 const createPointTemplate = (point) => {
   const startDate = actualPointDate(point.dateFrom);
   const startTime = actualPointTime(point.dateFrom);
@@ -29,7 +30,6 @@ const createPointTemplate = (point) => {
       <div class="event__type">
         <img class="event__type-icon" width="42" height="42" src="img/icons/${point.type}.png" alt="${point.type} icon">
       </div>
-      <!-- ИСПРАВЛЕНИЕ 1: Используем реальное название города -->
       <h3 class="event__title">${point.type} ${cityName}</h3>
       <div class="event__schedule">
         <p class="event__time">
@@ -39,12 +39,10 @@ const createPointTemplate = (point) => {
         </p>
         <p class="event__duration">30M</p>
       </div>
-      <!-- ИСПРАВЛЕНИЕ 2: Используем реальную цену точки -->
       <p class="event__price">
         &euro;&nbsp;<span class="event__price-value">${pointPrice}</span>
       </p>
       <h4 class="visually-hidden">Offers:</h4>
-      <!-- ИСПРАВЛЕНИЕ 3: Показываем реальные опции -->
       <ul class="event__selected-offers">
         ${offersHTML}
       </ul>
@@ -64,14 +62,19 @@ const createPointTemplate = (point) => {
 export default class PointView extends AbstractView {
   #point = null;
   #handleEditClick = null;
+  #handleFavoriteClick = null;
 
-  constructor({point, onEditClick}) {
+  constructor({point, onEditClick, onFavoriteClick}) {
     super();
     this.#point = point;
     this.#handleEditClick = onEditClick;
+    this.#handleFavoriteClick = onFavoriteClick;
 
     this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#editClickHandler);
+
+    this.element.querySelector('.event__favorite-btn')
+      .addEventListener('click', this.#favoriteClickHandler);
   }
 
   get template() {
@@ -81,5 +84,10 @@ export default class PointView extends AbstractView {
   #editClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleEditClick();
+  };
+
+  #favoriteClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleFavoriteClick();
   };
 }

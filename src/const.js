@@ -25,11 +25,18 @@ const SortType = {
   PRICE: 'price'
 };
 
+const SortTypeForData = {
+  DEFAULT: 'day',
+  TIME: 'time',
+  PRICE: 'price'
+};
+
 export {
   POINT_COUNT,
   DATE_FORMAT,
   TIME_FORMAT,
   BLANK_POINT,
   FilterType,
-  SortType
+  SortType,
+  SortTypeForData
 };
