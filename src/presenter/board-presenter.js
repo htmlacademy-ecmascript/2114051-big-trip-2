@@ -39,6 +39,10 @@ export default class BoardPresenter {
     this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
   };
 
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
+
   #renderTripInfo() {
     const tripInfoData = createTripInfoData(this.#boardPointModules);
     this.#tripInfoComponent = new TripInfoView({ tripInfo: tripInfoData });
@@ -67,7 +71,8 @@ export default class BoardPresenter {
   #renderPoint(point, container) {
     const pointPresenter = new PointPresenter({
       pointContainer: container,
-      onDataChange: this.#handlePointChange
+      onDataChange: this.#handlePointChange,
+      onModeChange: this.#handleModeChange
     });
 
     pointPresenter.init(point);
