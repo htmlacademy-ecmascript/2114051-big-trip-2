@@ -9,7 +9,8 @@ import FilterModel from '../model/filter-model.js';
 import SortModel from '../model/sort-model.js';
 import PointPresenter from './point-presenter.js';
 import { updateItem } from '../utils/utils.js';
-
+import { SortType } from '../const.js';
+import { sortDayUp, sortTime, sortPrice } from '../utils/sorting.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -28,6 +29,9 @@ export default class BoardPresenter {
   #pointPresenters = new Map();
   tripEventsView = new TripEventsView();
 
+  #currentSortType = SortType.DAY;
+  #sourcedBoardPoints = [];
+
   constructor({ boardContainer, tripInfoContainer, filterContainer, pointModel }) {
     this.#boardContainer = boardContainer;
     this.#tripInfoContainer = tripInfoContainer;
@@ -37,6 +41,7 @@ export default class BoardPresenter {
 
   #handlePointChange = (updatedPoint) => {
     this.#boardPointModules = updateItem(this.#boardPointModules, updatedPoint);
+    this.#sourcedBoardPoints = updateItem(this.#sourcedBoardPoints, updatedPoint);
     this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
   };
 
@@ -44,8 +49,32 @@ export default class BoardPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
 
+  #sortPoints(sortType) {
+    switch (sortType) {
+      case SortType.DAY:
+        this.#boardPointModules.sort(sortDayUp);
+        break;
+      case SortType.TIME:
+        this.#boardPointModules.sort(sortTime);
+        break;
+      case SortType.PRICE:
+        this.#boardPointModules.sort(sortPrice);
+        break;
+      default:
+        this.#boardPointModules = [...this.#sourcedBoardPoints];
+    }
+
+    this.#currentSortType = sortType;
+  }
+
   #handleSortTypeChange = (sortType) => {
-    sortType();
+    if (this.#currentSortType === sortType) {
+      return;
+    }
+
+    this.#sortPoints(sortType);
+    this.#clearPointsList();
+    this.#renderPoints();
   };
 
   #renderTripInfo() {
@@ -135,6 +164,8 @@ export default class BoardPresenter {
         this.#boardPointModules.push(fullPointInfo);
       }
     }
+
+    this.#sourcedBoardPoints = [...this.#boardPointModules];
 
     this.#filterModel = new FilterModel(this.#boardPointModules);
     this.#sortModel = new SortModel(this.#boardPointModules);
