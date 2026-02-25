@@ -10,6 +10,7 @@ import SortModel from '../model/sort-model.js';
 import PointPresenter from './point-presenter.js';
 import { updateItem } from '../utils/utils.js';
 
+
 export default class BoardPresenter {
   #boardContainer = null;
   #tripInfoContainer = null;
@@ -43,6 +44,10 @@ export default class BoardPresenter {
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   };
 
+  #handleSortTypeChange = (sortType) => {
+    sortType();
+  };
+
   #renderTripInfo() {
     const tripInfoData = createTripInfoData(this.#boardPointModules);
     this.#tripInfoComponent = new TripInfoView({ tripInfo: tripInfoData });
@@ -57,7 +62,10 @@ export default class BoardPresenter {
 
   #renderSort() {
     const sortData = this.#sortModel.sortItems;
-    this.#sortComponent = new SortView({ sortData });
+    this.#sortComponent = new SortView({
+      sortData,
+      onSortTypeChange: this.#handleSortTypeChange
+    });
     const tripEventsElement = this.tripEventsView.element;
     render(this.#sortComponent, tripEventsElement, RenderPosition.BEFOREBEGIN);
   }
