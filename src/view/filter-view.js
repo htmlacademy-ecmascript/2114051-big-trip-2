@@ -10,7 +10,7 @@ const createSingleFilterTemplate = (filterData) => {
 
   const isDisabled = count === 0 && type !== FilterType.EVERYTHING;
   const isChecked = type === FilterType.EVERYTHING;
-  const counterText = count > 0 ? ` (${count})` : '';
+  const counterText = type !== FilterType.EVERYTHING && count > 0 ? ` (${count})` : '';
 
   return `
     <div class="trip-filters__filter">
