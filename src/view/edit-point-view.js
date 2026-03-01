@@ -1,6 +1,8 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { BLANK_POINT } from '../const.js';
 import { formatDate } from '../utils/utils.js';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 const createPointTimeTemplate = (dateFrom, dateTo) => `
     <div class="event__field-group  event__field-group--time">
@@ -87,12 +89,14 @@ const createPointDestinationTemplate = (destination, pointType) => {
   `;
 };
 
+
 function createEditPointTemplate(state) {
   const { type, dateFrom, dateTo, destination, basePrice, isTypeListOpen, isDestinationOpen } = state;
   const typeListTemplate = isTypeListOpen ? createPointTypeTemplate(type) : '';
   const destinationDetailsTemplate = isDestinationOpen && destination?.description ? createPointDestinationDetailsTemplate(destination) : '';
   const timeTemplate = createPointTimeTemplate(dateFrom, dateTo);
   const destinationTemplate = createPointDestinationTemplate(destination, type);
+  const isSaveDisabled = !dateFrom || !dateTo;
 
   return `<li class="trip-events__item">
     <form class="event event--edit" action="#" method="post">
@@ -119,7 +123,7 @@ function createEditPointTemplate(state) {
             <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
           </div>
 
-          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaveDisabled ? 'disabled' : ''}>Save</button>
           <button class="event__reset-btn btn" type="reset">Delete</button>
 
           <button class="event__rollup-btn" type="button">
@@ -135,6 +139,8 @@ export default class EditPointView extends AbstractStatefulView {
   #handleFormSubmit = null;
   #handleDeleteClick = null;
   #handleCloseClick = null;
+  #datepickerFrom = null;
+  #datepickerTo = null;
 
   constructor({point = BLANK_POINT, onFormSubmit, onDeleteClick, onCloseClick}) {
     super();
@@ -148,6 +154,20 @@ export default class EditPointView extends AbstractStatefulView {
 
   get template() {
     return createEditPointTemplate(this._state);
+  }
+
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
   }
 
   reset(point) {
@@ -168,23 +188,42 @@ export default class EditPointView extends AbstractStatefulView {
 
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#priceInputHandler);
-    this.element.querySelector('#event-start-time-1').addEventListener('change', this.#dateFromChangeHandler);
-    this.element.querySelector('#event-end-time-1').addEventListener('change', this.#dateToChangeHandler);
+    this.#setDatepickers();
   }
 
-  #dateFromChangeHandler = (evt) => {
-    evt.preventDefault();
-    this._setState({
-      dateFrom: evt.target.value,
+  #dateFromChangeHandler = ([userDate]) => {
+    this.updateElement({
+      dateFrom: userDate,
     });
   };
 
-  #dateToChangeHandler = (evt) => {
-    evt.preventDefault();
-    this._setState({
-      dateTo: evt.target.value,
+  #dateToChangeHandler = ([userDate]) => {
+    this.updateElement({
+      dateTo: userDate,
     });
   };
+
+  #setDatepickers() {
+    this.#datepickerFrom = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        onChange: this.#dateFromChangeHandler,
+      },
+    );
+
+    this.#datepickerTo = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        onChange: this.#dateToChangeHandler,
+      },
+    );
+  }
 
   #priceInputHandler = (evt) => {
     evt.preventDefault();
