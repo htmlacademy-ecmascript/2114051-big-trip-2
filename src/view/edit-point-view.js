@@ -150,6 +150,12 @@ export default class EditPointView extends AbstractStatefulView {
     return createEditPointTemplate(this._state);
   }
 
+  reset(point) {
+    this.updateElement(
+      EditPointView.parsePointToState(point),
+    );
+  }
+
   _restoreHandlers() {
     this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#closeClickHandler);
@@ -161,7 +167,31 @@ export default class EditPointView extends AbstractStatefulView {
     });
 
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationChangeHandler);
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#priceInputHandler);
+    this.element.querySelector('#event-start-time-1').addEventListener('change', this.#dateFromChangeHandler);
+    this.element.querySelector('#event-end-time-1').addEventListener('change', this.#dateToChangeHandler);
   }
+
+  #dateFromChangeHandler = (evt) => {
+    evt.preventDefault();
+    this._setState({
+      dateFrom: evt.target.value,
+    });
+  };
+
+  #dateToChangeHandler = (evt) => {
+    evt.preventDefault();
+    this._setState({
+      dateTo: evt.target.value,
+    });
+  };
+
+  #priceInputHandler = (evt) => {
+    evt.preventDefault();
+    this._setState({
+      basePrice: evt.target.value,
+    });
+  };
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
@@ -188,6 +218,7 @@ export default class EditPointView extends AbstractStatefulView {
   #typeChangeHandler = (evt) => {
     evt.preventDefault();
     const newType = evt.target.value;
+
     this.updateElement({
       type: newType,
       isTypeListOpen: false
