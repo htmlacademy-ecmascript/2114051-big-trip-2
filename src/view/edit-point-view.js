@@ -4,6 +4,7 @@ import { formatDate } from '../utils/utils.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
+
 const createPointTimeTemplate = (dateFrom, dateTo) => `
     <div class="event__field-group  event__field-group--time">
       <label class="visually-hidden" for="event-start-time-1">From</label>
@@ -88,7 +89,6 @@ const createPointDestinationTemplate = (destination, pointType) => {
     </div>
   `;
 };
-
 
 function createEditPointTemplate(state) {
   const { type, dateFrom, dateTo, destination, basePrice, isTypeListOpen, isDestinationOpen } = state;
@@ -244,7 +244,7 @@ export default class EditPointView extends AbstractStatefulView {
 
   #deleteClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleDeleteClick();
+    this.#handleDeleteClick(EditPointView.parseStateToPoint(this._state));
   };
 
   #typeToggleHandler = (evt) => {
