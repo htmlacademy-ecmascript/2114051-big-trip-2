@@ -1,15 +1,14 @@
 import TripEventsView from '../view/trip-events-view.js';
 import SortView from '../view/sort-view.js';
 import TripInfoView from '../view/trip-info-view.js';
-import FilterView from '../view/filter-view.js';
 import { render, RenderPosition, remove } from '../framework/render.js';
 import { createTripInfoData } from '../mock/mock-trip-info-data.js';
 import ListEmptyView from '../view/list-empty-view.js';
-import FilterModel from '../model/filter-model.js';
 import SortModel from '../model/sort-model.js';
 import PointPresenter from './point-presenter.js';
-import { SortType, UserAction, UpdateType } from '../const.js';
+import { SortType, UserAction, UpdateType, FilterType } from '../const.js';
 import { sortDayUp, sortTime, sortPrice } from '../utils/sorting.js';
+import { filterFunctions } from '../utils/filter-utils.js';
 
 
 export default class BoardPresenter {
@@ -17,11 +16,10 @@ export default class BoardPresenter {
   #tripInfoContainer = null;
   #filterContainer = null;
   #pointModel = null;
-  #filterModel = null;
+  #currentFilterModel = null;
   #sortModel = null;
 
   #tripInfoComponent = null;
-  #filterComponent = null;
   #sortComponent = null;
   #listEmptyComponent = null;
 
@@ -29,28 +27,33 @@ export default class BoardPresenter {
   tripEventsView = new TripEventsView();
 
   #currentSortType = SortType.DAY;
+  #currentFilterType = FilterType.EVERYTHING;
 
-  constructor({ boardContainer, tripInfoContainer, filterContainer, pointModel }) {
+  constructor({ boardContainer, tripInfoContainer, filterContainer, pointModel, currentFilterModel }) {
     this.#boardContainer = boardContainer;
     this.#tripInfoContainer = tripInfoContainer;
     this.#filterContainer = filterContainer;
     this.#pointModel = pointModel;
+    this.#currentFilterModel = currentFilterModel;
 
     this.#pointModel.addObserver(this.#handleModelEvent);
+    this.#currentFilterModel.addObserver(this.#handleModelEvent);
   }
 
   get points() {
-    const points = [...this.#pointModel.points];
+    this.#currentFilterType = this.#currentFilterModel.filter;
+    const allPoints = [...this.#pointModel.points];
+    const filteredPoints = filterFunctions[this.#currentFilterType](allPoints);
 
     switch (this.#currentSortType) {
       case SortType.DAY:
-        return points.sort(sortDayUp);
+        return filteredPoints.sort(sortDayUp);
       case SortType.TIME:
-        return points.sort(sortTime);
+        return filteredPoints.sort(sortTime);
       case SortType.PRICE:
-        return points.sort(sortPrice);
+        return filteredPoints.sort(sortPrice);
       default:
-        return points;
+        return filteredPoints;
     }
   }
 
@@ -79,13 +82,11 @@ export default class BoardPresenter {
         this.#clearPointsList();
         this.#renderPoints();
         this.#updateTripInfo();
-        this.#updateFilters();
         break;
       case UpdateType.MAJOR:
         this.#clearBoard();
         this.#renderBoard();
         this.#updateTripInfo();
-        this.#updateFilters();
         break;
     }
   };
@@ -97,16 +98,6 @@ export default class BoardPresenter {
     const tripInfoData = createTripInfoData(this.points);
     this.#tripInfoComponent = new TripInfoView({ tripInfo: tripInfoData });
     render(this.#tripInfoComponent, this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
-  }
-
-  #updateFilters() {
-    if (this.#filterComponent) {
-      remove(this.#filterComponent);
-    }
-    this.#filterModel = new FilterModel(this.#pointModel.points);
-    const filtersData = this.#filterModel.filters;
-    this.#filterComponent = new FilterView({ filters: filtersData });
-    render(this.#filterComponent, this.#filterContainer);
   }
 
   #handleModeChange = () => {
@@ -123,17 +114,17 @@ export default class BoardPresenter {
     this.#renderPoints();
   };
 
+  #handleFilterTypeChange = (filterType) => {
+    if (this.#currentFilterModel.filter === filterType) {
+      return;
+    }
+    this.#currentFilterModel.setFilter(UpdateType.MAJOR, filterType);
+  };
+
   #renderTripInfo() {
     const tripInfoData = createTripInfoData(this.points);
     this.#tripInfoComponent = new TripInfoView({ tripInfo: tripInfoData });
     render(this.#tripInfoComponent, this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
-  }
-
-  #renderFilters() {
-    this.#filterModel = new FilterModel(this.#pointModel.points);
-    const filtersData = this.#filterModel.filters;
-    this.#filterComponent = new FilterView({ filters: filtersData });
-    render(this.#filterComponent, this.#filterContainer);
   }
 
   #renderSort() {
@@ -149,7 +140,7 @@ export default class BoardPresenter {
   }
 
   #renderNoPoints() {
-    this.#listEmptyComponent = new ListEmptyView();
+    this.#listEmptyComponent = new ListEmptyView({ filterType: this.#currentFilterType });
     const tripEventsElement = this.tripEventsView.element;
     render(this.#listEmptyComponent, tripEventsElement);
   }
@@ -177,11 +168,15 @@ export default class BoardPresenter {
 
     pointsList.innerHTML = '';
     this.#clearPointsList();
-    this.points.forEach((point) => this.#renderPoint(point, pointsList));
+
+    this.points.forEach((point) => {
+      this.#renderPoint(point, pointsList);
+    });
   }
 
-  #clearBoard() {
-    this.#clearPointsList();
+  #clearBoard({ resetSortType = false } = {}) {
+    this.#pointPresenters.forEach((presenter) => presenter.destroy());
+    this.#pointPresenters.clear();
 
     if (this.#sortComponent) {
       remove(this.#sortComponent);
@@ -194,6 +189,10 @@ export default class BoardPresenter {
     }
 
     this.#boardContainer.innerHTML = '';
+
+    if (resetSortType) {
+      this.#currentSortType = SortType.DAY;
+    }
   }
 
   #renderBoard() {
@@ -213,7 +212,6 @@ export default class BoardPresenter {
 
   render() {
     this.#renderTripInfo();
-    this.#renderFilters();
     this.#renderBoard();
   }
 

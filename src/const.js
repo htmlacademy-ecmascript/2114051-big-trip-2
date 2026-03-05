@@ -43,7 +43,6 @@ const UpdateType = {
   MAJOR: 'MAJOR',
 };
 
-
 export {
   POINT_COUNT,
   DATE_FORMAT,
