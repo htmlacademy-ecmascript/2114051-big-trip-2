@@ -3,12 +3,11 @@ import { SortType } from '../const.js';
 
 const formatSortLabel = (sortType) => sortType.charAt(0).toUpperCase() + sortType.slice(1);
 
-const createSortItemTemplate = (sortItem) => {
+const createSortItemTemplate = (sortItem, currentSortType) => {
   const { type } = sortItem;
   const labelText = formatSortLabel(type);
-
   const isAlwaysDisabled = type === SortType.EVENT || type === SortType.OFFERS;
-  const isChecked = type === SortType.DAY;
+  const isChecked = type === currentSortType;
 
   return `
     <div class="trip-sort__item trip-sort__item--${type}">
@@ -27,9 +26,10 @@ const createSortItemTemplate = (sortItem) => {
   `;
 };
 
-const createSortTemplate = (sortData) => {
+
+const createSortTemplate = (sortData, currentSortType) => {
   const sortItemsHtml = sortData
-    .map((item) => createSortItemTemplate(item))
+    .map((item) => createSortItemTemplate(item, currentSortType))
     .join('\n');
 
   return `
@@ -41,17 +41,19 @@ const createSortTemplate = (sortData) => {
 
 export default class SortView extends AbstractView {
   #sortData = null;
+  #currentSortType = null;
   #handleSortTypeChange = null;
 
-  constructor({ sortData, onSortTypeChange }) {
+  constructor({ sortData, currentSortType, onSortTypeChange }) {
     super();
     this.#sortData = sortData;
+    this.#currentSortType = currentSortType;
     this.#handleSortTypeChange = onSortTypeChange;
     this.element.addEventListener('click', this.#sortTypeChangeHandler);
   }
 
   get template() {
-    return createSortTemplate(this.#sortData);
+    return createSortTemplate(this.#sortData, this.#currentSortType);
   }
 
   #sortTypeChangeHandler = (evt) => {

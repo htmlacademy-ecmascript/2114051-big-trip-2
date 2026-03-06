@@ -31,6 +31,18 @@ const SortTypeForData = {
   PRICE: 'price'
 };
 
+const UserAction = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT',
+};
+
+const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+};
+
 export {
   POINT_COUNT,
   DATE_FORMAT,
@@ -38,5 +50,7 @@ export {
   BLANK_POINT,
   FilterType,
   SortType,
-  SortTypeForData
+  SortTypeForData,
+  UserAction,
+  UpdateType
 };
