@@ -11,7 +11,13 @@ import { sortDayUp, sortTime, sortPrice } from '../utils/sorting.js';
 import { filterFunctions } from '../utils/filter-utils.js';
 import FailedLoadView from '../view/failed-load-view.js';
 import LoadingView from '../view/loading-view.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
+
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -33,6 +39,11 @@ export default class BoardPresenter {
   #currentSortType = SortType.DAY;
   #currentFilterType = FilterType.EVERYTHING;
   #isLoading = true;
+
+  #uiBlocker = new UiBlocker({
+    lowerLimit: TimeLimit.LOWER_LIMIT,
+    upperLimit: TimeLimit.UPPER_LIMIT
+  });
 
   constructor({ boardContainer, tripInfoContainer, filterContainer, pointModel, currentFilterModel }) {
     this.#boardContainer = boardContainer;
@@ -62,18 +73,32 @@ export default class BoardPresenter {
     }
   }
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
+    this.#uiBlocker.block();
+
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        this.#pointModel.updatePoint(updateType, update);
+        this.#pointPresenters.get(update.id).setSaving();
+        try {
+          await this.#pointModel.updatePoint(updateType, update);
+        } catch(err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
       case UserAction.ADD_POINT:
-        this.#pointModel.addPoint(updateType, update);
+        await this.#pointModel.addPoint(updateType, update);
         break;
       case UserAction.DELETE_POINT:
-        this.#pointModel.deletePoint(updateType, update);
+        this.#pointPresenters.get(update.id).setDeleting();
+        try {
+          await this.#pointModel.deletePoint(updateType, update);
+        } catch(err) {
+          this.#pointPresenters.get(update.id).setAborting();
+        }
         break;
     }
+
+    this.#uiBlocker.unblock();
   };
 
   #handleModelEvent = (updateType, data) => {
