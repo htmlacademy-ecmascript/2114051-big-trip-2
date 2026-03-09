@@ -9,6 +9,8 @@ import PointPresenter from './point-presenter.js';
 import { SortType, UserAction, UpdateType, FilterType } from '../const.js';
 import { sortDayUp, sortTime, sortPrice } from '../utils/sorting.js';
 import { filterFunctions } from '../utils/filter-utils.js';
+import FailedLoadView from '../view/failed-load-view.js';
+import LoadingView from '../view/loading-view.js';
 
 
 export default class BoardPresenter {
@@ -22,12 +24,15 @@ export default class BoardPresenter {
   #tripInfoComponent = null;
   #sortComponent = null;
   #listEmptyComponent = null;
+  #loadingComponent = null;
+  #failedLoadComponent = null;
 
   #pointPresenters = new Map();
   tripEventsView = new TripEventsView();
 
   #currentSortType = SortType.DAY;
   #currentFilterType = FilterType.EVERYTHING;
+  #isLoading = true;
 
   constructor({ boardContainer, tripInfoContainer, filterContainer, pointModel, currentFilterModel }) {
     this.#boardContainer = boardContainer;
@@ -88,6 +93,12 @@ export default class BoardPresenter {
         this.#renderBoard();
         this.#updateTripInfo();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderBoard();
+        this.#updateTripInfo();
+        break;
     }
   };
 
@@ -145,6 +156,16 @@ export default class BoardPresenter {
     render(this.#listEmptyComponent, tripEventsElement);
   }
 
+  #renderLoading() {
+    this.#loadingComponent = new LoadingView();
+    render(this.#loadingComponent, this.tripEventsView.element);
+  }
+
+  #renderFailedLoad() {
+    this.#failedLoadComponent = new FailedLoadView();
+    render(this.#failedLoadComponent, this.tripEventsView.element);
+  }
+
   #renderPoint(point, container) {
     const pointPresenter = new PointPresenter({
       pointContainer: container,
@@ -188,6 +209,16 @@ export default class BoardPresenter {
       this.#listEmptyComponent = null;
     }
 
+    if (this.#loadingComponent) {
+      remove(this.#loadingComponent);
+      this.#loadingComponent = null;
+    }
+
+    if (this.#failedLoadComponent) {
+      remove(this.#failedLoadComponent);
+      this.#failedLoadComponent = null;
+    }
+
     this.#boardContainer.innerHTML = '';
 
     if (resetSortType) {
@@ -197,6 +228,11 @@ export default class BoardPresenter {
 
   #renderBoard() {
     render(this.tripEventsView, this.#boardContainer);
+
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
 
     const points = this.points;
     const pointCount = points.length;
@@ -217,5 +253,17 @@ export default class BoardPresenter {
 
   init() {
     this.render();
+  }
+
+  setLoading() {
+    this.#isLoading = true;
+    this.#clearBoard();
+    this.#renderBoard();
+  }
+
+  setFailedLoad() {
+    this.#isLoading = false;
+    this.#clearBoard();
+    this.#renderFailedLoad();
   }
 }
