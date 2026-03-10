@@ -26,7 +26,6 @@ const createSortItemTemplate = (sortItem, currentSortType) => {
   `;
 };
 
-
 const createSortTemplate = (sortData, currentSortType) => {
   const sortItemsHtml = sortData
     .map((item) => createSortItemTemplate(item, currentSortType))

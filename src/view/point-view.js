@@ -1,10 +1,13 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { formatDate } from '../utils/date-utils.js';
+import { calculateDuration, formatDuration } from '../utils/date-utils.js';
+
 
 const createPointTemplate = (point) => {
   const startDate = formatDate(point.dateFrom, 'MMM DD');
   const startTime = formatDate(point.dateFrom, 'HH:mm');
   const endTime = formatDate(point.dateTo, 'HH:mm');
+  const duration = formatDuration(calculateDuration(point.dateFrom, point.dateTo));
 
   const isExpired = point.dateTo ? new Date() > new Date(point.dateTo) : false;
   const expiredClassName = isExpired ? 'trip-event--expired' : '';
@@ -37,7 +40,7 @@ const createPointTemplate = (point) => {
           &mdash;
           <time class="event__end-time" datetime="${point.dateTo}">${endTime}</time>
         </p>
-        <p class="event__duration">30M</p>
+        <p class="event__duration">${duration}</p>
       </div>
       <p class="event__price">
         &euro;&nbsp;<span class="event__price-value">${pointPrice}</span>

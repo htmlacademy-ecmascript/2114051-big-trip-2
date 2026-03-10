@@ -12,6 +12,7 @@ import FailedLoadView from '../view/failed-load-view.js';
 import LoadingView from '../view/loading-view.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import { getTripTitle, getTripDates, getTotalCost } from '../utils/trip-info-utils.js';
+import EditPointView from '../view/edit-point-view.js';
 
 
 const TimeLimit = {
@@ -22,16 +23,17 @@ const TimeLimit = {
 export default class BoardPresenter {
   #boardContainer = null;
   #tripInfoContainer = null;
-  #filterContainer = null;
   #pointModel = null;
   #currentFilterModel = null;
   #sortModel = null;
+  #newEventButton = null;
 
   #tripInfoComponent = null;
   #sortComponent = null;
   #listEmptyComponent = null;
   #loadingComponent = null;
   #failedLoadComponent = null;
+  #newPointEditComponent = null;
 
   #pointPresenters = new Map();
   tripEventsView = new TripEventsView();
@@ -39,18 +41,19 @@ export default class BoardPresenter {
   #currentSortType = SortType.DAY;
   #currentFilterType = FilterType.EVERYTHING;
   #isLoading = true;
+  #isFailedLoad = false;
 
   #uiBlocker = new UiBlocker({
     lowerLimit: TimeLimit.LOWER_LIMIT,
     upperLimit: TimeLimit.UPPER_LIMIT
   });
 
-  constructor({ boardContainer, tripInfoContainer, filterContainer, pointModel, currentFilterModel }) {
+  constructor({ boardContainer, tripInfoContainer, pointModel, currentFilterModel, newEventButton }) {
     this.#boardContainer = boardContainer;
     this.#tripInfoContainer = tripInfoContainer;
-    this.#filterContainer = filterContainer;
     this.#pointModel = pointModel;
     this.#currentFilterModel = currentFilterModel;
+    this.#newEventButton = newEventButton;
 
     this.#pointModel.addObserver(this.#handleModelEvent);
     this.#currentFilterModel.addObserver(this.#handleModelEvent);
@@ -72,6 +75,62 @@ export default class BoardPresenter {
         return filteredPoints;
     }
   }
+
+  createPoint = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+
+    if (this.#newPointEditComponent) {
+      remove(this.#newPointEditComponent);
+      this.#newPointEditComponent = null;
+    }
+
+    this.#currentFilterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    this.#currentSortType = SortType.DAY;
+
+    this.#newPointEditComponent = new EditPointView({
+      point: {
+        basePrice: 0,
+        dateFrom: new Date(),
+        dateTo: new Date(),
+        destination: null,
+        isFavorite: false,
+        offers: [],
+        type: 'flight'
+      },
+      onFormSubmit: this.#handleNewPointSubmit,
+      onDeleteClick: this.#handleNewPointDelete,
+      onCloseClick: this.#handleNewPointClose
+    });
+
+    const pointsList = this.tripEventsView.element.querySelector('.trip-events__list');
+    if (pointsList) {
+      render(this.#newPointEditComponent, pointsList, RenderPosition.AFTERBEGIN);
+      this.#newEventButton.disabled = true;
+    }
+  };
+
+  #handleNewPointSubmit = async (point) => {
+    try {
+      await this.#pointModel.addPoint(UpdateType.MINOR, point);
+      remove(this.#newPointEditComponent);
+      this.#newPointEditComponent = null;
+      this.#newEventButton.disabled = false;
+    } catch(err) {
+      this.#newPointEditComponent.shake();
+    }
+  };
+
+  #handleNewPointDelete = () => {
+    remove(this.#newPointEditComponent);
+    this.#newPointEditComponent = null;
+    this.#newEventButton.disabled = false;
+  };
+
+  #handleNewPointClose = () => {
+    remove(this.#newPointEditComponent);
+    this.#newPointEditComponent = null;
+    this.#newEventButton.disabled = false;
+  };
 
   #handleViewAction = async (actionType, updateType, update) => {
     this.#uiBlocker.block();
@@ -112,12 +171,14 @@ export default class BoardPresenter {
         this.#updateTripInfo();
         break;
       case UpdateType.MAJOR:
-        this.#clearBoard();
+        this.#clearBoard({ resetSortType: true });
         this.#renderBoard();
         this.#updateTripInfo();
         break;
       case UpdateType.INIT:
         this.#isLoading = false;
+        this.#isFailedLoad = false;
+        this.#newEventButton.disabled = false;
         remove(this.#loadingComponent);
         this.#renderBoard();
         this.#updateTripInfo();
@@ -133,7 +194,7 @@ export default class BoardPresenter {
 
     const points = this.#pointModel.points;
 
-    if (!points || points.length === 0 || this.#isLoading) {
+    if (!points || points.length === 0 || this.#isLoading || this.#isFailedLoad) {
       return;
     }
 
@@ -167,13 +228,6 @@ export default class BoardPresenter {
     this.#renderPoints();
   };
 
-  #handleFilterTypeChange = (filterType) => {
-    if (this.#currentFilterModel.filter === filterType) {
-      return;
-    }
-    this.#currentFilterModel.setFilter(UpdateType.MAJOR, filterType);
-  };
-
   #renderSort() {
     this.#sortModel = new SortModel(this.#pointModel.points);
     const sortData = this.#sortModel.sortItems;
@@ -200,6 +254,11 @@ export default class BoardPresenter {
   #renderFailedLoad() {
     this.#failedLoadComponent = new FailedLoadView();
     render(this.#failedLoadComponent, this.tripEventsView.element);
+
+    const filters = document.querySelectorAll('.trip-filters__filter-input');
+    filters.forEach((filter) => {
+      filter.disabled = true;
+    });
   }
 
   #renderPoint(point, container) {
@@ -232,6 +291,11 @@ export default class BoardPresenter {
   }
 
   #clearBoard({ resetSortType = false } = {}) {
+    if (this.#newPointEditComponent) {
+      remove(this.#newPointEditComponent);
+      this.#newPointEditComponent = null;
+    }
+
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
 
@@ -275,6 +339,11 @@ export default class BoardPresenter {
       return;
     }
 
+    if (this.#isFailedLoad) {
+      this.#renderFailedLoad();
+      return;
+    }
+
     const points = this.points;
     const pointCount = points.length;
 
@@ -289,7 +358,7 @@ export default class BoardPresenter {
 
   render() {
     this.#renderBoard();
-    if (!this.#isLoading && this.#pointModel.points.length > 0) {
+    if (!this.#isLoading && !this.#isFailedLoad && this.#pointModel.points.length > 0) {
       this.#updateTripInfo();
     }
   }
@@ -300,13 +369,17 @@ export default class BoardPresenter {
 
   setLoading() {
     this.#isLoading = true;
+    this.#isFailedLoad = false;
+    this.#newEventButton.disabled = true;
     this.#clearBoard();
     this.#renderBoard();
   }
 
   setFailedLoad() {
     this.#isLoading = false;
+    this.#isFailedLoad = true;
+    this.#newEventButton.disabled = true;
     this.#clearBoard();
-    this.#renderFailedLoad();
+    this.#renderBoard();
   }
 }
