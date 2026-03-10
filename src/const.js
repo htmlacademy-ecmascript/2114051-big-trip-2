@@ -1,6 +1,7 @@
 const POINT_COUNT = 8;
 const DATE_FORMAT = 'MMM DD';
 const TIME_FORMAT = 'HH:mm';
+const MAX_CITIES_IN_TITLE = 3;
 
 const BLANK_POINT = {
   basePrice: 0,
@@ -49,6 +50,7 @@ export {
   DATE_FORMAT,
   TIME_FORMAT,
   BLANK_POINT,
+  MAX_CITIES_IN_TITLE,
   FilterType,
   SortType,
   SortTypeForData,
