@@ -4,54 +4,53 @@ import { formatDate } from '../utils/utils.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
-
-const createPointTimeTemplate = (dateFrom, dateTo) => `
+const createPointTimeTemplate = (dateFrom, dateTo, isDisabled) => `
     <div class="event__field-group  event__field-group--time">
       <label class="visually-hidden" for="event-start-time-1">From</label>
-      <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${ (dateFrom && dateTo) ? formatDate(dateFrom, 'DD/MM/YY HH:mm') : '' }">
+      <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${ (dateFrom && dateTo) ? formatDate(dateFrom, 'DD/MM/YY HH:mm') : '' }" ${isDisabled ? 'disabled' : ''}>
       &mdash;
       <label class="visually-hidden" for="event-end-time-1">To</label>
-      <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${ (dateTo && dateFrom) ? formatDate(dateTo, 'DD/MM/YY HH:mm') : '' }">
+      <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${ (dateTo && dateFrom) ? formatDate(dateTo, 'DD/MM/YY HH:mm') : '' }" ${isDisabled ? 'disabled' : ''}>
     </div>
   `;
 
-const createPointTypeTemplate = (currentType) => `<div class="event__type-list">
+const createPointTypeTemplate = (currentType, isDisabled) => `<div class="event__type-list">
       <fieldset class="event__type-group">
         <legend class="visually-hidden">Event type</legend>
         <div class="event__type-item">
-          <input id="event-type-taxi-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="taxi" ${currentType === 'taxi' ? 'checked' : ''}>
+          <input id="event-type-taxi-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="taxi" ${currentType === 'taxi' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--taxi" for="event-type-taxi-1">Taxi</label>
         </div>
         <div class="event__type-item">
-          <input id="event-type-bus-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="bus" ${currentType === 'bus' ? 'checked' : ''}>
+          <input id="event-type-bus-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="bus" ${currentType === 'bus' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--bus" for="event-type-bus-1">Bus</label>
         </div>
         <div class="event__type-item">
-          <input id="event-type-train-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="train" ${currentType === 'train' ? 'checked' : ''}>
+          <input id="event-type-train-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="train" ${currentType === 'train' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--train" for="event-type-train-1">Train</label>
         </div>
         <div class="event__type-item">
-          <input id="event-type-ship-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="ship" ${currentType === 'ship' ? 'checked' : ''}>
+          <input id="event-type-ship-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="ship" ${currentType === 'ship' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--ship" for="event-type-ship-1">Ship</label>
         </div>
         <div class="event__type-item">
-          <input id="event-type-drive-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="drive" ${currentType === 'drive' ? 'checked' : ''}>
+          <input id="event-type-drive-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="drive" ${currentType === 'drive' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--drive" for="event-type-drive-1">Drive</label>
         </div>
         <div class="event__type-item">
-          <input id="event-type-flight-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="flight" ${currentType === 'flight' ? 'checked' : ''}>
+          <input id="event-type-flight-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="flight" ${currentType === 'flight' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--flight" for="event-type-flight-1">Flight</label>
         </div>
         <div class="event__type-item">
-          <input id="event-type-check-in-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="check-in" ${currentType === 'check-in' ? 'checked' : ''}>
+          <input id="event-type-check-in-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="check-in" ${currentType === 'check-in' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--check-in" for="event-type-check-in-1">Check-in</label>
         </div>
         <div class="event__type-item">
-          <input id="event-type-sightseeing-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="sightseeing" ${currentType === 'sightseeing' ? 'checked' : ''}>
+          <input id="event-type-sightseeing-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="sightseeing" ${currentType === 'sightseeing' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--sightseeing" for="event-type-sightseeing-1">Sightseeing</label>
         </div>
         <div class="event__type-item">
-          <input id="event-type-restaurant-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="restaurant" ${currentType === 'restaurant' ? 'checked' : ''}>
+          <input id="event-type-restaurant-1" class="event__type-input visually-hidden" type="radio" name="event-type" value="restaurant" ${currentType === 'restaurant' ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
           <label class="event__type-label event__type-label--restaurant" for="event-type-restaurant-1">Restaurant</label>
         </div>
       </fieldset>
@@ -71,7 +70,7 @@ const createPointDestinationDetailsTemplate = (destination) => {
   `;
 };
 
-const createPointDestinationTemplate = (destination, pointType) => {
+const createPointDestinationTemplate = (destination, pointType, isDisabled) => {
   const destinationName = destination?.name || '';
   const typeLabel = pointType ? pointType.charAt(0).toUpperCase() + pointType.slice(1) : 'Bus';
 
@@ -80,7 +79,7 @@ const createPointDestinationTemplate = (destination, pointType) => {
       <label class="event__label  event__type-output" for="event-destination-1">
         ${typeLabel}
       </label>
-      <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}" list="destination-list-1">
+      <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}" list="destination-list-1" ${isDisabled ? 'disabled' : ''}>
       <datalist id="destination-list-1">
         <option value="Amsterdam"></option>
         <option value="Geneva"></option>
@@ -91,12 +90,24 @@ const createPointDestinationTemplate = (destination, pointType) => {
 };
 
 function createEditPointTemplate(state) {
-  const { type, dateFrom, dateTo, destination, basePrice, isTypeListOpen, isDestinationOpen } = state;
-  const typeListTemplate = isTypeListOpen ? createPointTypeTemplate(type) : '';
+  const {
+    type,
+    dateFrom,
+    dateTo,
+    destination,
+    basePrice,
+    isTypeListOpen,
+    isDestinationOpen,
+    isDisabled,
+    isSaving,
+    isDeleting
+  } = state;
+
+  const typeListTemplate = isTypeListOpen ? createPointTypeTemplate(type, isDisabled) : '';
   const destinationDetailsTemplate = isDestinationOpen && destination?.description ? createPointDestinationDetailsTemplate(destination) : '';
-  const timeTemplate = createPointTimeTemplate(dateFrom, dateTo);
-  const destinationTemplate = createPointDestinationTemplate(destination, type);
-  const isSaveDisabled = !dateFrom || !dateTo;
+  const timeTemplate = createPointTimeTemplate(dateFrom, dateTo, isDisabled);
+  const destinationTemplate = createPointDestinationTemplate(destination, type, isDisabled);
+  const isSaveDisabled = !dateFrom || !dateTo || isDisabled;
 
   return `<li class="trip-events__item">
     <form class="event event--edit" action="#" method="post">
@@ -106,7 +117,7 @@ function createEditPointTemplate(state) {
             <span class="visually-hidden">Choose event type</span>
             <img class="event__type-icon" width="17" height="17" src="img/icons/${type || 'bus'}.png" alt="Event type icon">
           </label>
-          <input class="event__type-toggle visually-hidden" id="event-type-toggle-1" type="checkbox" ${isTypeListOpen ? 'checked' : ''}>
+          <input class="event__type-toggle visually-hidden" id="event-type-toggle-1" type="checkbox" ${isTypeListOpen ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
 
           ${typeListTemplate}
 
@@ -120,13 +131,17 @@ function createEditPointTemplate(state) {
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
+            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}" ${isDisabled ? 'disabled' : ''}>
           </div>
 
-          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaveDisabled ? 'disabled' : ''}>Save</button>
-          <button class="event__reset-btn btn" type="reset">Delete</button>
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isSaveDisabled ? 'disabled' : ''}>
+            ${isSaving ? 'Saving...' : 'Save'}
+          </button>
+          <button class="event__reset-btn btn" type="reset" ${isDisabled ? 'disabled' : ''}>
+            ${isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
 
-          <button class="event__rollup-btn" type="button">
+          <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
             <span class="visually-hidden">Close event</span>
           </button>
       </header>
@@ -204,6 +219,10 @@ export default class EditPointView extends AbstractStatefulView {
   };
 
   #setDatepickers() {
+    if (this._state.isDisabled) {
+      return;
+    }
+
     this.#datepickerFrom = flatpickr(
       this.element.querySelector('#event-start-time-1'),
       {
@@ -281,7 +300,10 @@ export default class EditPointView extends AbstractStatefulView {
     return {
       ...point,
       isTypeListOpen: false,
-      isDestinationOpen: false
+      isDestinationOpen: false,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
     };
   }
 
@@ -289,6 +311,9 @@ export default class EditPointView extends AbstractStatefulView {
     const point = { ...state };
     delete point.isTypeListOpen;
     delete point.isDestinationOpen;
+    delete point.isDisabled;
+    delete point.isSaving;
+    delete point.isDeleting;
     return point;
   }
 }
