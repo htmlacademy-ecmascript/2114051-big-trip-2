@@ -4,10 +4,9 @@ import { FilterType } from '../const.js';
 const formatFilterLabel = (filterType) => filterType.charAt(0).toUpperCase() + filterType.slice(1);
 
 const createSingleFilterTemplate = (filterData, currentFilterType) => {
-  const { type, count } = filterData;
+  const { type, count, isDisabled } = filterData;
   const labelText = formatFilterLabel(type);
 
-  const isDisabled = count === 0 && type !== FilterType.EVERYTHING;
   const isChecked = type === currentFilterType;
   const counterText = type !== FilterType.EVERYTHING && count > 0 ? ` (${count})` : '';
 

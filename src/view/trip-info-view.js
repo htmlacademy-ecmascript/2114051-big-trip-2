@@ -3,6 +3,10 @@ import AbstractView from '../framework/view/abstract-view.js';
 const createInfoTemplate = (tripInfo) => {
   const { title, dates, totalCost } = tripInfo;
 
+  if (!title) {
+    return '';
+  }
+
   return `
     <section class="trip-main__trip-info trip-info">
       <div class="trip-info__main">
@@ -26,4 +30,3 @@ export default class TripInfoView extends AbstractView {
     return createInfoTemplate(this.#tripInfo);
   }
 }
-
