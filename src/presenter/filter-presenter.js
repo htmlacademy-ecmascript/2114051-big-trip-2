@@ -3,6 +3,7 @@ import FilterView from '../view/filter-view.js';
 import { filterFunctions } from '../utils/filter-utils.js';
 import { FilterType, UpdateType } from '../const.js';
 
+
 export default class FilterPresenter {
   #filterContainer = null;
   #filterModel = null;
@@ -23,7 +24,8 @@ export default class FilterPresenter {
 
     return Object.values(FilterType).map((type) => ({
       type,
-      count: filterFunctions[type](points).length
+      count: filterFunctions[type](points).length,
+      isDisabled: filterFunctions[type](points).length === 0 && type !== FilterType.EVERYTHING
     }));
   }
 

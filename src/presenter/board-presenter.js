@@ -2,7 +2,6 @@ import TripEventsView from '../view/trip-events-view.js';
 import SortView from '../view/sort-view.js';
 import TripInfoView from '../view/trip-info-view.js';
 import { render, RenderPosition, remove } from '../framework/render.js';
-import { createTripInfoData } from '../mock/mock-trip-info-data.js';
 import ListEmptyView from '../view/list-empty-view.js';
 import SortModel from '../model/sort-model.js';
 import PointPresenter from './point-presenter.js';
@@ -12,6 +11,7 @@ import { filterFunctions } from '../utils/filter-utils.js';
 import FailedLoadView from '../view/failed-load-view.js';
 import LoadingView from '../view/loading-view.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
+import { getTripTitle, getTripDates, getTotalCost } from '../utils/trip-info-utils.js';
 
 
 const TimeLimit = {
@@ -85,9 +85,6 @@ export default class BoardPresenter {
           this.#pointPresenters.get(update.id).setAborting();
         }
         break;
-      case UserAction.ADD_POINT:
-        await this.#pointModel.addPoint(updateType, update);
-        break;
       case UserAction.DELETE_POINT:
         this.#pointPresenters.get(update.id).setDeleting();
         try {
@@ -107,6 +104,7 @@ export default class BoardPresenter {
         if (this.#pointPresenters.has(data.id)) {
           this.#pointPresenters.get(data.id).init(data);
         }
+        this.#updateTripInfo();
         break;
       case UpdateType.MINOR:
         this.#clearPointsList();
@@ -130,10 +128,29 @@ export default class BoardPresenter {
   #updateTripInfo() {
     if (this.#tripInfoComponent) {
       remove(this.#tripInfoComponent);
+      this.#tripInfoComponent = null;
     }
-    const tripInfoData = createTripInfoData(this.points);
+
+    const points = this.#pointModel.points;
+
+    if (!points || points.length === 0 || this.#isLoading) {
+      return;
+    }
+
+    const destinations = this.#pointModel.destinations;
+    const offers = this.#pointModel.offers;
+
+    const tripInfoData = {
+      title: getTripTitle(points, destinations),
+      dates: getTripDates(points),
+      totalCost: getTotalCost(points, offers)
+    };
+
     this.#tripInfoComponent = new TripInfoView({ tripInfo: tripInfoData });
-    render(this.#tripInfoComponent, this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
+
+    if (this.#tripInfoContainer) {
+      render(this.#tripInfoComponent, this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
+    }
   }
 
   #handleModeChange = () => {
@@ -156,12 +173,6 @@ export default class BoardPresenter {
     }
     this.#currentFilterModel.setFilter(UpdateType.MAJOR, filterType);
   };
-
-  #renderTripInfo() {
-    const tripInfoData = createTripInfoData(this.points);
-    this.#tripInfoComponent = new TripInfoView({ tripInfo: tripInfoData });
-    render(this.#tripInfoComponent, this.#tripInfoContainer, RenderPosition.AFTERBEGIN);
-  }
 
   #renderSort() {
     this.#sortModel = new SortModel(this.#pointModel.points);
@@ -244,6 +255,11 @@ export default class BoardPresenter {
       this.#failedLoadComponent = null;
     }
 
+    if (this.#tripInfoComponent) {
+      remove(this.#tripInfoComponent);
+      this.#tripInfoComponent = null;
+    }
+
     this.#boardContainer.innerHTML = '';
 
     if (resetSortType) {
@@ -272,8 +288,10 @@ export default class BoardPresenter {
   }
 
   render() {
-    this.#renderTripInfo();
     this.#renderBoard();
+    if (!this.#isLoading && this.#pointModel.points.length > 0) {
+      this.#updateTripInfo();
+    }
   }
 
   init() {
