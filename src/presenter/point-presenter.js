@@ -30,6 +30,7 @@ export default class PointPresenter {
   #onDataChange = null;
   #onModeChange = null;
   #mode = Mode.DEFAULT;
+  #isLocked = false;
 
   constructor({ pointContainer, onDataChange, onModeChange }) {
     this.#pointContainer = pointContainer;
@@ -80,7 +81,7 @@ export default class PointPresenter {
   }
 
   resetView() {
-    if (this.#mode !== Mode.DEFAULT) {
+    if (this.#mode !== Mode.DEFAULT && !this.#isLocked) {
       this.#pointEditComponent.reset(this.#point);
       this.#replaceFormToPoint();
     }
@@ -88,6 +89,7 @@ export default class PointPresenter {
 
   setSaving() {
     if (this.#mode === Mode.EDITING) {
+      this.#isLocked = true;
       this.#pointEditComponent.updateElement({
         isDisabled: true,
         isSaving: true,
@@ -97,6 +99,7 @@ export default class PointPresenter {
 
   setDeleting() {
     if (this.#mode === Mode.EDITING) {
+      this.#isLocked = true;
       this.#pointEditComponent.updateElement({
         isDisabled: true,
         isDeleting: true,
@@ -111,6 +114,7 @@ export default class PointPresenter {
     }
 
     const resetFormState = () => {
+      this.#isLocked = false;
       this.#pointEditComponent.updateElement({
         isDisabled: false,
         isSaving: false,
@@ -122,6 +126,9 @@ export default class PointPresenter {
   }
 
   #replacePointToForm() {
+    if (this.#isLocked) {
+      return;
+    }
     replace(this.#pointEditComponent, this.#pointComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
     this.#onModeChange();
@@ -135,6 +142,9 @@ export default class PointPresenter {
   }
 
   #escKeyDownHandler = (evt) => {
+    if (this.#isLocked) {
+      return;
+    }
     if (evt.key === 'Escape' || evt.key === 'Esc') {
       evt.preventDefault();
       this.#pointEditComponent.reset(this.#point);
@@ -143,10 +153,16 @@ export default class PointPresenter {
   };
 
   #handleEditClick = () => {
+    if (this.#isLocked) {
+      return;
+    }
     this.#replacePointToForm();
   };
 
   #handleFavoriteClick = () => {
+    if (this.#isLocked) {
+      return;
+    }
     this.#onDataChange(
       UserAction.UPDATE_POINT,
       UpdateType.PATCH,
@@ -177,6 +193,9 @@ export default class PointPresenter {
   };
 
   #handleCloseClick = () => {
+    if (this.#isLocked) {
+      return;
+    }
     this.#pointEditComponent.reset(this.#point);
     this.#replaceFormToPoint();
   };

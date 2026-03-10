@@ -35,11 +35,13 @@ const boardPresenter = new BoardPresenter({
   filterContainer,
   pointModel,
   filterModel,
-  currentFilterModel
+  currentFilterModel,
+  newEventButton
 });
 
-newEventButton.addEventListener('click', () => {
-  newEventButton.disabled = true;
+newEventButton.addEventListener('click', (evt) => {
+  evt.preventDefault();
+  boardPresenter.createPoint();
 });
 
 newEventButton.disabled = true;
@@ -47,6 +49,10 @@ newEventButton.disabled = true;
 filterPresenter.init();
 boardPresenter.init();
 
-pointModel.init().finally(() => {
-  newEventButton.disabled = false;
-});
+pointModel.init()
+  .then(() => {
+    newEventButton.disabled = false;
+  })
+  .catch(() => {
+    newEventButton.disabled = true;
+  });

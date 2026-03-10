@@ -66,6 +66,10 @@ export default class ApiService {
     delete adaptedPoint.dateTo;
     delete adaptedPoint.isFavorite;
 
+    if (adaptedPoint.destination?.name) {
+      adaptedPoint.destination = adaptedPoint.destination.id || adaptedPoint.destination;
+    }
+
     return adaptedPoint;
   }
 
