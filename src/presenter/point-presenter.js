@@ -2,13 +2,25 @@ import {render, replace, remove} from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import EditPointView from '../view/edit-point-view.js';
 import { UserAction, UpdateType } from '../const.js';
-import { isDatesEqual, isPointTypeEqual } from '../utils/point-utils.js';
+import dayjs from 'dayjs';
 
 
 const Mode = {
   DEFAULT: 'DEFAULT',
   EDITING: 'EDITING',
 };
+
+const isDatesEqual = (dateA, dateB) => {
+  if (dateA === null && dateB === null) {
+    return true;
+  }
+  if (dateA === null || dateB === null) {
+    return false;
+  }
+  return dayjs(dateA).isSame(dateB, 'minute');
+};
+
+const isPointTypeEqual = (typeA, typeB) => typeA === typeB;
 
 export default class PointPresenter {
   #pointContainer = null;

@@ -1,4 +1,4 @@
-export const adaptToClient = (point) => {
+export const adaptPointToClient = (point) => {
   const adaptedPoint = {
     ...point,
     basePrice: point['base_price'],
@@ -15,8 +15,7 @@ export const adaptToClient = (point) => {
   return adaptedPoint;
 };
 
-
-export const adaptToServer = (point) => {
+export const adaptPointToServer = (point) => {
   const adaptedPoint = {
     ...point,
     'base_price': point.basePrice,
@@ -32,7 +31,6 @@ export const adaptToServer = (point) => {
 
   return adaptedPoint;
 };
-
 
 export const adaptDestinationToClient = (destination) => destination;
 export const adaptOffersToClient = (offers) => offers;

@@ -1,14 +1,14 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { actualPointDate, actualPointTime, isPointExpired, pointOffers } from '../utils/utils.js';
-
+import { formatDate } from '../utils/date-utils.js';
 
 const createPointTemplate = (point) => {
-  const startDate = actualPointDate(point.dateFrom);
-  const startTime = actualPointTime(point.dateFrom);
-  const endTime = actualPointTime(point.dateTo);
+  const startDate = formatDate(point.dateFrom, 'MMM DD');
+  const startTime = formatDate(point.dateFrom, 'HH:mm');
+  const endTime = formatDate(point.dateTo, 'HH:mm');
 
-  const expiredClassName = isPointExpired(point.dateTo) ? 'trip-event--expired' : '';
-  const offersClassName = pointOffers(point.offers) ? 'event-offers' : '';
+  const isExpired = point.dateTo ? new Date() > new Date(point.dateTo) : false;
+  const expiredClassName = isExpired ? 'trip-event--expired' : '';
+  const offersClassName = point.offers?.length ? 'event-offers' : '';
   const favoriteBtnClassName = point.isFavorite ? 'event__favorite-btn--active' : '';
   const cityName = point.destination?.name || 'Unknown';
   const pointPrice = point.basePrice || 0;

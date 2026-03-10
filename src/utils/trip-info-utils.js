@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { MAX_CITIES_IN_TITLE } from '../const.js';
 
 const getTripTitle = (points, destinations) => {
   if (!points || points.length === 0) {
@@ -19,7 +20,7 @@ const getTripTitle = (points, destinations) => {
     return '';
   }
 
-  if (cityNames.length > 3) {
+  if (cityNames.length > MAX_CITIES_IN_TITLE) {
     return `${cityNames[0]} — ... — ${cityNames[cityNames.length - 1]}`;
   }
 
