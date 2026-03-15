@@ -5,7 +5,7 @@ import { render, RenderPosition, remove } from '../framework/render.js';
 import ListEmptyView from '../view/list-empty-view.js';
 import SortModel from '../model/sort-model.js';
 import PointPresenter from './point-presenter.js';
-import { SortType, UserAction, UpdateType, FilterType } from '../const.js';
+import { SortType, UserAction, UpdateType, FilterType, BLANK_POINT } from '../const.js';
 import { sortDayUp, sortTime, sortPrice } from '../utils/sorting.js';
 import { filterFunctions } from '../utils/filter-utils.js';
 import FailedLoadView from '../view/failed-load-view.js';
@@ -87,15 +87,7 @@ export default class BoardPresenter {
     this.#currentFilterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     this.#currentSortType = SortType.DAY;
 
-    const newPoint = {
-      basePrice: 0,
-      dateFrom: new Date(),
-      dateTo: new Date(),
-      destination: null,
-      isFavorite: false,
-      offers: [],
-      type: 'flight'
-    };
+    const newPoint = { ...BLANK_POINT, dateFrom: new Date(), dateTo: new Date() };
 
     this.#newPointEditComponent = new EditPointView({
       point: newPoint,
@@ -106,6 +98,8 @@ export default class BoardPresenter {
       onCloseClick: this.#handleNewPointClose
     });
 
+    document.addEventListener('keydown', this.#onEscKeyDown);
+
     const pointsList = this.tripEventsView.element.querySelector('.trip-events__list');
     if (pointsList) {
       render(this.#newPointEditComponent, pointsList, RenderPosition.AFTERBEGIN);
@@ -113,9 +107,19 @@ export default class BoardPresenter {
     }
   };
 
+  #onEscKeyDown = (evt) => {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      if (this.#newPointEditComponent) {
+        this.#handleNewPointClose();
+      }
+    }
+  };
+
   #handleNewPointSubmit = async (point) => {
     try {
       await this.#pointModel.addPoint(UpdateType.MINOR, point);
+      document.removeEventListener('keydown', this.#onEscKeyDown);
       remove(this.#newPointEditComponent);
       this.#newPointEditComponent = null;
       this.#newEventButton.disabled = false;
@@ -125,12 +129,14 @@ export default class BoardPresenter {
   };
 
   #handleNewPointDelete = () => {
+    document.removeEventListener('keydown', this.#onEscKeyDown);
     remove(this.#newPointEditComponent);
     this.#newPointEditComponent = null;
     this.#newEventButton.disabled = false;
   };
 
   #handleNewPointClose = () => {
+    document.removeEventListener('keydown', this.#onEscKeyDown);
     remove(this.#newPointEditComponent);
     this.#newPointEditComponent = null;
     this.#newEventButton.disabled = false;
@@ -297,6 +303,7 @@ export default class BoardPresenter {
 
   #clearBoard({ resetSortType = false } = {}) {
     if (this.#newPointEditComponent) {
+      document.removeEventListener('keydown', this.#onEscKeyDown);
       remove(this.#newPointEditComponent);
       this.#newPointEditComponent = null;
     }
