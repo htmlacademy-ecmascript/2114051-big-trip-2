@@ -276,7 +276,9 @@ export default class BoardPresenter {
     const pointPresenter = new PointPresenter({
       pointContainer: container,
       onDataChange: this.#handleViewAction,
-      onModeChange: this.#handleModeChange
+      onModeChange: this.#handleModeChange,
+      destinations: this.#pointModel.destinations,
+      offers: this.#pointModel.offers
     });
 
     const fullPointInfo = this.#pointModel.getFullPointInfo(point);
