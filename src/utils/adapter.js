@@ -18,17 +18,31 @@ export const adaptPointToClient = (point) => {
 
 export const adaptPointToServer = (point) => {
   const adaptedPoint = {
-    ...point,
     'base_price': point.basePrice,
-    'date_from': point.dateFrom ? point.dateFrom.toISOString() : null,
-    'date_to': point.dateTo ? point.dateTo.toISOString() : null,
-    'is_favorite': point.isFavorite,
+    'date_from': point.dateFrom instanceof Date ? point.dateFrom.toISOString() : null,
+    'date_to': point.dateTo instanceof Date ? point.dateTo.toISOString() : null,
+    'destination': null,
+    'is_favorite': point.isFavorite || false,
+    'offers': [],
+    'type': point.type
   };
 
-  delete adaptedPoint.basePrice;
-  delete adaptedPoint.dateFrom;
-  delete adaptedPoint.dateTo;
-  delete adaptedPoint.isFavorite;
+  if (point.destination) {
+    if (typeof point.destination === 'object') {
+      adaptedPoint.destination = point.destination.id || point.destination;
+    } else {
+      adaptedPoint.destination = point.destination;
+    }
+  }
+
+  if (point.offers && Array.isArray(point.offers)) {
+    adaptedPoint.offers = point.offers.map((offer) => {
+      if (typeof offer === 'object') {
+        return offer.id;
+      }
+      return offer;
+    });
+  }
 
   return adaptedPoint;
 };

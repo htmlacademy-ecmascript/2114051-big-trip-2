@@ -70,9 +70,11 @@ const createPointDestinationDetailsTemplate = (destination) => {
   `;
 };
 
-const createPointDestinationTemplate = (destination, pointType, isDisabled) => {
+const createPointDestinationTemplate = (destination, pointType, isDisabled, destinations) => {
   const destinationName = destination?.name || '';
   const typeLabel = pointType ? pointType.charAt(0).toUpperCase() + pointType.slice(1) : 'Bus';
+
+  const optionsHtml = destinations.map((dest) => `<option value="${dest.name}"></option>`).join('');
 
   return `
     <div class="event__field-group  event__field-group--destination">
@@ -81,9 +83,7 @@ const createPointDestinationTemplate = (destination, pointType, isDisabled) => {
       </label>
       <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}" list="destination-list-1" ${isDisabled ? 'disabled' : ''}>
       <datalist id="destination-list-1">
-        <option value="Amsterdam"></option>
-        <option value="Geneva"></option>
-        <option value="Chamonix"></option>
+        ${optionsHtml}
       </datalist>
     </div>
   `;
@@ -100,13 +100,14 @@ function createEditPointTemplate(state) {
     isDestinationOpen,
     isDisabled,
     isSaving,
-    isDeleting
+    isDeleting,
+    destinations
   } = state;
 
   const typeListTemplate = isTypeListOpen ? createPointTypeTemplate(type, isDisabled) : '';
   const destinationDetailsTemplate = isDestinationOpen && destination?.description ? createPointDestinationDetailsTemplate(destination) : '';
   const timeTemplate = createPointTimeTemplate(dateFrom, dateTo, isDisabled);
-  const destinationTemplate = createPointDestinationTemplate(destination, type, isDisabled);
+  const destinationTemplate = createPointDestinationTemplate(destination, type, isDisabled, destinations || []);
   const isSaveDisabled = !dateFrom || !dateTo || isDisabled;
 
   return `<li class="trip-events__item">
@@ -156,13 +157,17 @@ export default class EditPointView extends AbstractStatefulView {
   #handleCloseClick = null;
   #datepickerFrom = null;
   #datepickerTo = null;
+  #destinations = [];
+  #offers = [];
 
-  constructor({point = BLANK_POINT, onFormSubmit, onDeleteClick, onCloseClick}) {
+  constructor({point = BLANK_POINT, destinations = [], offers = [], onFormSubmit, onDeleteClick, onCloseClick}) {
     super();
-    this._setState(EditPointView.parsePointToState(point));
+    this._setState(EditPointView.parsePointToState({...point, destinations}));
     this.#handleFormSubmit = onFormSubmit;
     this.#handleDeleteClick = onDeleteClick;
     this.#handleCloseClick = onCloseClick;
+    this.#destinations = destinations;
+    this.#offers = offers;
 
     this._restoreHandlers();
   }
@@ -187,7 +192,7 @@ export default class EditPointView extends AbstractStatefulView {
 
   reset(point) {
     this.updateElement(
-      EditPointView.parsePointToState(point),
+      EditPointView.parsePointToState({...point, destinations: this.#destinations}),
     );
   }
 
@@ -287,13 +292,23 @@ export default class EditPointView extends AbstractStatefulView {
     evt.preventDefault();
     const destinationName = evt.target.value;
 
-    this.updateElement({
-      destination: {
-        name: destinationName,
-        description: 'Chamonix, is a beautiful city, a true asian pearl, with crowded streets.'
-      },
-      isDestinationOpen: true
-    });
+    const selectedDestination = this.#destinations.find((dest) => dest.name === destinationName);
+
+    if (selectedDestination) {
+      this.updateElement({
+        destination: selectedDestination,
+        isDestinationOpen: true
+      });
+    } else {
+      this.updateElement({
+        destination: {
+          name: destinationName,
+          description: '',
+          pictures: []
+        },
+        isDestinationOpen: false
+      });
+    }
   };
 
   static parsePointToState(point) {
@@ -314,6 +329,7 @@ export default class EditPointView extends AbstractStatefulView {
     delete point.isDisabled;
     delete point.isSaving;
     delete point.isDeleting;
+    delete point.destinations;
     return point;
   }
 }

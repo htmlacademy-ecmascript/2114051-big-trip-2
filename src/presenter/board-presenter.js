@@ -87,17 +87,20 @@ export default class BoardPresenter {
     this.#currentFilterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     this.#currentSortType = SortType.DAY;
 
+    const newPoint = {
+      basePrice: 0,
+      dateFrom: new Date(),
+      dateTo: new Date(),
+      destination: null,
+      isFavorite: false,
+      offers: [],
+      type: 'flight'
+    };
+
     this.#newPointEditComponent = new EditPointView({
-      point: {
-        basePrice: 0,
-        dateFrom: new Date(),
-        dateTo: new Date(),
-        destination: null,
-        isFavorite: false,
-        offers: [],
-        type: 'flight'
-      },
+      point: newPoint,
       destinations: this.#pointModel.destinations,
+      offers: this.#pointModel.offers,
       onFormSubmit: this.#handleNewPointSubmit,
       onDeleteClick: this.#handleNewPointDelete,
       onCloseClick: this.#handleNewPointClose

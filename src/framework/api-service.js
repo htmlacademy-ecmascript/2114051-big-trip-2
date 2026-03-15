@@ -20,10 +20,12 @@ export default class ApiService {
   }
 
   async updatePoint(point) {
+    const adaptedPoint = this.#adaptToServer(point);
+
     const response = await this._load({
       url: `points/${point.id}`,
       method: 'PUT',
-      body: JSON.stringify(this.#adaptToServer(point)),
+      body: JSON.stringify(adaptedPoint),
       headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
@@ -32,10 +34,12 @@ export default class ApiService {
   }
 
   async addPoint(point) {
+    const adaptedPoint = this.#adaptToServer(point);
+
     const response = await this._load({
       url: 'points',
       method: 'POST',
-      body: JSON.stringify(this.#adaptToServer(point)),
+      body: JSON.stringify(adaptedPoint),
       headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
@@ -53,21 +57,35 @@ export default class ApiService {
   }
 
   #adaptToServer(point) {
+    if (!point || typeof point !== 'object') {
+      return {};
+    }
+
     const adaptedPoint = {
-      ...point,
-      'base_price': point.basePrice,
+      'base_price': Number(point.basePrice) || 0,
       'date_from': point.dateFrom instanceof Date ? point.dateFrom.toISOString() : null,
       'date_to': point.dateTo instanceof Date ? point.dateTo.toISOString() : null,
-      'is_favorite': point.isFavorite,
+      'destination': null,
+      'is_favorite': Boolean(point.isFavorite),
+      'offers': [],
+      'type': point.type || 'flight'
     };
 
-    delete adaptedPoint.basePrice;
-    delete adaptedPoint.dateFrom;
-    delete adaptedPoint.dateTo;
-    delete adaptedPoint.isFavorite;
+    if (point.destination) {
+      if (typeof point.destination === 'object') {
+        adaptedPoint.destination = point.destination.id || null;
+      } else {
+        adaptedPoint.destination = point.destination;
+      }
+    }
 
-    if (adaptedPoint.destination?.name) {
-      adaptedPoint.destination = adaptedPoint.destination.id || adaptedPoint.destination;
+    if (point.offers && Array.isArray(point.offers)) {
+      adaptedPoint.offers = point.offers.map((offer) => {
+        if (typeof offer === 'object' && offer.id) {
+          return offer.id;
+        }
+        return offer;
+      });
     }
 
     return adaptedPoint;
