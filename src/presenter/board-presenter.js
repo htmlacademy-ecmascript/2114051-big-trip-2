@@ -27,6 +27,7 @@ export default class BoardPresenter {
   #currentFilterModel = null;
   #sortModel = null;
   #newEventButton = null;
+  #filterPresenter = null;
 
   #tripInfoComponent = null;
   #sortComponent = null;
@@ -48,12 +49,13 @@ export default class BoardPresenter {
     upperLimit: TimeLimit.UPPER_LIMIT
   });
 
-  constructor({ boardContainer, tripInfoContainer, pointModel, currentFilterModel, newEventButton }) {
+  constructor({ boardContainer, tripInfoContainer, pointModel, currentFilterModel, newEventButton, filterPresenter }) {
     this.#boardContainer = boardContainer;
     this.#tripInfoContainer = tripInfoContainer;
     this.#pointModel = pointModel;
     this.#currentFilterModel = currentFilterModel;
     this.#newEventButton = newEventButton;
+    this.#filterPresenter = filterPresenter;
 
     this.#pointModel.addObserver(this.#handleModelEvent);
     this.#currentFilterModel.addObserver(this.#handleModelEvent);
@@ -193,6 +195,9 @@ export default class BoardPresenter {
         remove(this.#loadingComponent);
         this.#renderBoard();
         this.#updateTripInfo();
+        if (this.#filterPresenter) {
+          this.#filterPresenter.setFiltersDisabled(false);
+        }
         break;
     }
   };
@@ -235,9 +240,19 @@ export default class BoardPresenter {
     }
 
     this.#currentSortType = sortType;
+
+    this.#clearSort();
+    this.#renderSort();
     this.#clearPointsList();
     this.#renderPoints();
   };
+
+  #clearSort() {
+    if (this.#sortComponent) {
+      remove(this.#sortComponent);
+      this.#sortComponent = null;
+    }
+  }
 
   #renderSort() {
     this.#sortModel = new SortModel(this.#pointModel.points);
@@ -266,10 +281,9 @@ export default class BoardPresenter {
     this.#failedLoadComponent = new FailedLoadView();
     render(this.#failedLoadComponent, this.tripEventsView.element);
 
-    const filters = document.querySelectorAll('.trip-filters__filter-input');
-    filters.forEach((filter) => {
-      filter.disabled = true;
-    });
+    if (this.#filterPresenter) {
+      this.#filterPresenter.setFiltersDisabled(true);
+    }
   }
 
   #renderPoint(point, container) {
@@ -312,11 +326,7 @@ export default class BoardPresenter {
 
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
-
-    if (this.#sortComponent) {
-      remove(this.#sortComponent);
-      this.#sortComponent = null;
-    }
+    this.#clearSort();
 
     if (this.#listEmptyComponent) {
       remove(this.#listEmptyComponent);
