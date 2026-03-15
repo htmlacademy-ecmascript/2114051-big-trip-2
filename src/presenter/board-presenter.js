@@ -5,7 +5,7 @@ import { render, RenderPosition, remove } from '../framework/render.js';
 import ListEmptyView from '../view/list-empty-view.js';
 import SortModel from '../model/sort-model.js';
 import PointPresenter from './point-presenter.js';
-import { SortType, UserAction, UpdateType, FilterType } from '../const.js';
+import { SortType, UserAction, UpdateType, FilterType, BLANK_POINT } from '../const.js';
 import { sortDayUp, sortTime, sortPrice } from '../utils/sorting.js';
 import { filterFunctions } from '../utils/filter-utils.js';
 import FailedLoadView from '../view/failed-load-view.js';
@@ -27,6 +27,7 @@ export default class BoardPresenter {
   #currentFilterModel = null;
   #sortModel = null;
   #newEventButton = null;
+  #filterPresenter = null;
 
   #tripInfoComponent = null;
   #sortComponent = null;
@@ -48,12 +49,13 @@ export default class BoardPresenter {
     upperLimit: TimeLimit.UPPER_LIMIT
   });
 
-  constructor({ boardContainer, tripInfoContainer, pointModel, currentFilterModel, newEventButton }) {
+  constructor({ boardContainer, tripInfoContainer, pointModel, currentFilterModel, newEventButton, filterPresenter }) {
     this.#boardContainer = boardContainer;
     this.#tripInfoContainer = tripInfoContainer;
     this.#pointModel = pointModel;
     this.#currentFilterModel = currentFilterModel;
     this.#newEventButton = newEventButton;
+    this.#filterPresenter = filterPresenter;
 
     this.#pointModel.addObserver(this.#handleModelEvent);
     this.#currentFilterModel.addObserver(this.#handleModelEvent);
@@ -87,20 +89,18 @@ export default class BoardPresenter {
     this.#currentFilterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     this.#currentSortType = SortType.DAY;
 
+    const newPoint = { ...BLANK_POINT, dateFrom: new Date(), dateTo: new Date() };
+
     this.#newPointEditComponent = new EditPointView({
-      point: {
-        basePrice: 0,
-        dateFrom: new Date(),
-        dateTo: new Date(),
-        destination: null,
-        isFavorite: false,
-        offers: [],
-        type: 'flight'
-      },
+      point: newPoint,
+      destinations: this.#pointModel.destinations,
+      offers: this.#pointModel.offers,
       onFormSubmit: this.#handleNewPointSubmit,
       onDeleteClick: this.#handleNewPointDelete,
       onCloseClick: this.#handleNewPointClose
     });
+
+    document.addEventListener('keydown', this.#onEscKeyDown);
 
     const pointsList = this.tripEventsView.element.querySelector('.trip-events__list');
     if (pointsList) {
@@ -109,9 +109,19 @@ export default class BoardPresenter {
     }
   };
 
+  #onEscKeyDown = (evt) => {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      if (this.#newPointEditComponent) {
+        this.#handleNewPointClose();
+      }
+    }
+  };
+
   #handleNewPointSubmit = async (point) => {
     try {
       await this.#pointModel.addPoint(UpdateType.MINOR, point);
+      document.removeEventListener('keydown', this.#onEscKeyDown);
       remove(this.#newPointEditComponent);
       this.#newPointEditComponent = null;
       this.#newEventButton.disabled = false;
@@ -121,12 +131,14 @@ export default class BoardPresenter {
   };
 
   #handleNewPointDelete = () => {
+    document.removeEventListener('keydown', this.#onEscKeyDown);
     remove(this.#newPointEditComponent);
     this.#newPointEditComponent = null;
     this.#newEventButton.disabled = false;
   };
 
   #handleNewPointClose = () => {
+    document.removeEventListener('keydown', this.#onEscKeyDown);
     remove(this.#newPointEditComponent);
     this.#newPointEditComponent = null;
     this.#newEventButton.disabled = false;
@@ -161,7 +173,8 @@ export default class BoardPresenter {
     switch (updateType) {
       case UpdateType.PATCH:
         if (this.#pointPresenters.has(data.id)) {
-          this.#pointPresenters.get(data.id).init(data);
+          const fullPointInfo = this.#pointModel.getFullPointInfo(data);
+          this.#pointPresenters.get(data.id).init(fullPointInfo);
         }
         this.#updateTripInfo();
         break;
@@ -182,6 +195,9 @@ export default class BoardPresenter {
         remove(this.#loadingComponent);
         this.#renderBoard();
         this.#updateTripInfo();
+        if (this.#filterPresenter) {
+          this.#filterPresenter.setFiltersDisabled(false);
+        }
         break;
     }
   };
@@ -224,9 +240,19 @@ export default class BoardPresenter {
     }
 
     this.#currentSortType = sortType;
+
+    this.#clearSort();
+    this.#renderSort();
     this.#clearPointsList();
     this.#renderPoints();
   };
+
+  #clearSort() {
+    if (this.#sortComponent) {
+      remove(this.#sortComponent);
+      this.#sortComponent = null;
+    }
+  }
 
   #renderSort() {
     this.#sortModel = new SortModel(this.#pointModel.points);
@@ -255,17 +281,18 @@ export default class BoardPresenter {
     this.#failedLoadComponent = new FailedLoadView();
     render(this.#failedLoadComponent, this.tripEventsView.element);
 
-    const filters = document.querySelectorAll('.trip-filters__filter-input');
-    filters.forEach((filter) => {
-      filter.disabled = true;
-    });
+    if (this.#filterPresenter) {
+      this.#filterPresenter.setFiltersDisabled(true);
+    }
   }
 
   #renderPoint(point, container) {
     const pointPresenter = new PointPresenter({
       pointContainer: container,
       onDataChange: this.#handleViewAction,
-      onModeChange: this.#handleModeChange
+      onModeChange: this.#handleModeChange,
+      destinations: this.#pointModel.destinations,
+      offers: this.#pointModel.offers
     });
 
     const fullPointInfo = this.#pointModel.getFullPointInfo(point);
@@ -292,17 +319,14 @@ export default class BoardPresenter {
 
   #clearBoard({ resetSortType = false } = {}) {
     if (this.#newPointEditComponent) {
+      document.removeEventListener('keydown', this.#onEscKeyDown);
       remove(this.#newPointEditComponent);
       this.#newPointEditComponent = null;
     }
 
     this.#pointPresenters.forEach((presenter) => presenter.destroy());
     this.#pointPresenters.clear();
-
-    if (this.#sortComponent) {
-      remove(this.#sortComponent);
-      this.#sortComponent = null;
-    }
+    this.#clearSort();
 
     if (this.#listEmptyComponent) {
       remove(this.#listEmptyComponent);

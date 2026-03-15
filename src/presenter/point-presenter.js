@@ -31,11 +31,15 @@ export default class PointPresenter {
   #onModeChange = null;
   #mode = Mode.DEFAULT;
   #isLocked = false;
+  #destinations = [];
+  #offers = [];
 
-  constructor({ pointContainer, onDataChange, onModeChange }) {
+  constructor({ pointContainer, onDataChange, onModeChange, destinations = [], offers = [] }) {
     this.#pointContainer = pointContainer;
     this.#onDataChange = onDataChange;
     this.#onModeChange = onModeChange;
+    this.#destinations = destinations;
+    this.#offers = offers;
   }
 
   init(point) {
@@ -52,6 +56,8 @@ export default class PointPresenter {
 
     this.#pointEditComponent = new EditPointView({
       point: this.#point,
+      destinations: this.#destinations,
+      offers: this.#offers,
       onFormSubmit: this.#handleFormSubmit,
       onDeleteClick: this.#handleDeleteClick,
       onCloseClick: this.#handleCloseClick
@@ -163,10 +169,16 @@ export default class PointPresenter {
     if (this.#isLocked) {
       return;
     }
+
+    const updatedPoint = {
+      ...this.#point,
+      isFavorite: !this.#point.isFavorite
+    };
+
     this.#onDataChange(
       UserAction.UPDATE_POINT,
       UpdateType.PATCH,
-      { ...this.#point, isFavorite: !this.#point.isFavorite }
+      updatedPoint
     );
   };
 

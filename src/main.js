@@ -36,7 +36,8 @@ const boardPresenter = new BoardPresenter({
   pointModel,
   filterModel,
   currentFilterModel,
-  newEventButton
+  newEventButton,
+  filterPresenter
 });
 
 newEventButton.addEventListener('click', (evt) => {
@@ -55,4 +56,5 @@ pointModel.init()
   })
   .catch(() => {
     newEventButton.disabled = true;
+    filterPresenter.setFiltersDisabled(true);
   });

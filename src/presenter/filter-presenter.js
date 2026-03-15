@@ -10,6 +10,7 @@ export default class FilterPresenter {
   #pointsModel = null;
 
   #filterComponent = null;
+  #areFiltersDisabled = false;
 
   constructor({ filterContainer, filterModel, pointsModel }) {
     this.#filterContainer = filterContainer;
@@ -25,8 +26,13 @@ export default class FilterPresenter {
     return Object.values(FilterType).map((type) => ({
       type,
       count: filterFunctions[type](points).length,
-      isDisabled: filterFunctions[type](points).length === 0 && type !== FilterType.EVERYTHING
+      isDisabled: this.#areFiltersDisabled || (filterFunctions[type](points).length === 0 && type !== FilterType.EVERYTHING)
     }));
+  }
+
+  setFiltersDisabled(disabled) {
+    this.#areFiltersDisabled = disabled;
+    this.init();
   }
 
   init() {
@@ -53,6 +59,10 @@ export default class FilterPresenter {
   };
 
   #handleFilterTypeChange = (filterType) => {
+    if (this.#areFiltersDisabled) {
+      return;
+    }
+
     if (this.#filterModel.filter === filterType) {
       return;
     }
