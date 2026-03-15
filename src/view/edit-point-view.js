@@ -193,7 +193,7 @@ function createEditPointTemplate(state) {
         </button>
       </header>
       ${offersTemplate}
-      ${destinationDetailsTemplate}
+      ${destinationDetailsTemplate} <!-- НОВОЕ: добавляем блок с описанием -->
     </form>
   </li>`;
 }
