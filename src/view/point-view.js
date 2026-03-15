@@ -4,6 +4,10 @@ import { calculateDuration, formatDuration } from '../utils/date-utils.js';
 
 
 const createPointTemplate = (point) => {
+  if (!point || !point.destination) {
+    return '<li class="trip-events__item">No data</li>';
+  }
+
   const startDate = formatDate(point.dateFrom, 'MMM DD');
   const startTime = formatDate(point.dateFrom, 'HH:mm');
   const endTime = formatDate(point.dateTo, 'HH:mm');
@@ -17,14 +21,23 @@ const createPointTemplate = (point) => {
   const pointPrice = point.basePrice || 0;
 
   let offersHTML = '';
-  if (point.offers && point.offers.length > 0) {
-    offersHTML = point.offers.map((offer) => `
-      <li class="event__offer">
-        <span class="event__offer-title">${offer.title || 'Unknown offer'}</span>
-        &plus;&euro;&nbsp;
-        <span class="event__offer-price">${offer.price || 0}</span>
-      </li>
-    `).join('');
+  if (point.offers && Array.isArray(point.offers) && point.offers.length > 0) {
+    offersHTML = point.offers.map((offer) => {
+      if (!offer) {
+        return '';
+      }
+
+      const title = offer.title || 'Unknown offer';
+      const price = offer.price || 0;
+
+      return `
+        <li class="event__offer">
+          <span class="event__offer-title">${title}</span>
+          &plus;&euro;&nbsp;
+          <span class="event__offer-price">${price}</span>
+        </li>
+      `;
+    }).join('');
   }
 
   return `<li class="trip-events__item ${expiredClassName} ${offersClassName}">

@@ -52,8 +52,18 @@ export default class PointModel extends Observable {
     }
 
     try {
+      const currentPoint = this.#points[index];
+      const currentOffers = currentPoint.offers || [];
       const response = await this.#pointsApiService.updatePoint(update);
       const updatedPoint = adaptPointToClient(response);
+
+      if (updateType === UpdateType.PATCH) {
+        updatedPoint.offers = currentOffers;
+      } else {
+        if (!updatedPoint.offers || updatedPoint.offers.length === 0) {
+          updatedPoint.offers = update.offers || currentOffers;
+        }
+      }
 
       this.#points = [
         ...this.#points.slice(0, index),
@@ -113,14 +123,13 @@ export default class PointModel extends Observable {
     return offerGroup ? offerGroup.offers : [];
   }
 
-  getFullPointInfo(point) {
-    if (!point) {
-      return null;
-    }
-
-    const cityInfo = this.getDestinationById(point.destination);
+  getSelectedOffers(point) {
     const allOffersForType = this.getOffersByType(point.type);
     const selectedOffers = [];
+
+    if (!point.offers || !Array.isArray(point.offers)) {
+      return selectedOffers;
+    }
 
     for (const offerId of point.offers) {
       const foundOffer = allOffersForType.find((offer) => offer.id === offerId);
@@ -129,10 +138,34 @@ export default class PointModel extends Observable {
       }
     }
 
+    return selectedOffers;
+  }
+
+  getFullPointInfo(point) {
+    if (!point) {
+      return null;
+    }
+
+    const destinationId = typeof point.destination === 'object' ? point.destination.id : point.destination;
+    const cityInfo = this.getDestinationById(destinationId);
+
+    if (!cityInfo) {
+      return {
+        ...point,
+        destination: {
+          id: destinationId,
+          name: point.destination?.name || 'Unknown',
+          description: '',
+          pictures: []
+        },
+        offers: this.getSelectedOffers(point)
+      };
+    }
+
     return {
       ...point,
       destination: cityInfo,
-      offers: selectedOffers
+      offers: this.getSelectedOffers(point)
     };
   }
 }

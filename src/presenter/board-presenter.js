@@ -97,6 +97,7 @@ export default class BoardPresenter {
         offers: [],
         type: 'flight'
       },
+      destinations: this.#pointModel.destinations,
       onFormSubmit: this.#handleNewPointSubmit,
       onDeleteClick: this.#handleNewPointDelete,
       onCloseClick: this.#handleNewPointClose
@@ -161,7 +162,8 @@ export default class BoardPresenter {
     switch (updateType) {
       case UpdateType.PATCH:
         if (this.#pointPresenters.has(data.id)) {
-          this.#pointPresenters.get(data.id).init(data);
+          const fullPointInfo = this.#pointModel.getFullPointInfo(data);
+          this.#pointPresenters.get(data.id).init(fullPointInfo);
         }
         this.#updateTripInfo();
         break;

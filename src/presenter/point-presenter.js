@@ -163,10 +163,16 @@ export default class PointPresenter {
     if (this.#isLocked) {
       return;
     }
+
+    const updatedPoint = {
+      ...this.#point,
+      isFavorite: !this.#point.isFavorite
+    };
+
     this.#onDataChange(
       UserAction.UPDATE_POINT,
       UpdateType.PATCH,
-      { ...this.#point, isFavorite: !this.#point.isFavorite }
+      updatedPoint
     );
   };
 

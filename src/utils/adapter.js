@@ -5,6 +5,7 @@ export const adaptPointToClient = (point) => {
     dateFrom: point['date_from'] ? new Date(point['date_from']) : null,
     dateTo: point['date_to'] ? new Date(point['date_to']) : null,
     isFavorite: point['is_favorite'],
+    offers: point['offers'] || []
   };
 
   delete adaptedPoint['base_price'];
